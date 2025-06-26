@@ -13,6 +13,16 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+// 根路径处理 - 用于测试代理服务器是否正常运行
+app.get("/", (req: Request, res: Response) => {
+  res.json({
+    status: "running",
+    message: "MorphoTV Proxy Server is running",
+    proxyEndpoint: "/proxy/",
+    usage: "Use /proxy/{target-url} to proxy requests"
+  });
+});
+
 // 通用代理路由
 app.all("/proxy/*", async (req: Request, res: Response) => {
   try {
