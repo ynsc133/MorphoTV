@@ -275,7 +275,7 @@ serve(req => {
       <body>
         <div class="container">
           <h1>🎬 MorphoTV 代理服务器</h1>
-          <div class="badge">Deno Deploy 优化版</div>
+          <div class="badge">Deno Deploy</div>
 
           <div class="status">
             🚀 服务器运行正常
