@@ -1,0 +1,22 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid">
+  <!-- Increased stroke-width for better visibility at small sizes -->
+  <g stroke="#000000" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- TV screen moved down and slightly enlarged -->
+    <rect x="55" y="95" width="146" height="106" rx="22" ry="22" />
+
+    <!-- Abstract butterfly wings adjusted accordingly -->
+    <path d="M55 115 C 10 90, 10 210, 55 186" />
+    <path d="M201 115 C 246 90, 246 210, 201 186" />
+
+    <!-- Antennas moved down significantly and slightly adjusted -->
+    <line x1="100" y1="95" x2="88" y2="70" />
+    <line x1="156" y1="95" x2="168" y2="70" />
+    <!-- Antenna tips also moved down -->
+    <circle cx="88" cy="70" r="5" fill="#000000" stroke="none" />
+    <circle cx="168" cy="70" r="5" fill="#000000" stroke="none" />
+
+    <!-- Minimal Play Button inside the screen (re-added and centered) -->
+    <!-- Centered around (128, 148) -->
+    <path d="M112 133 l 32 15 -32 15 z" stroke-width="10"/>
+  </g>
+</svg>
