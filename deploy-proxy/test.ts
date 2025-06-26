@@ -106,6 +106,9 @@ serve(req => {
         <h2>使用方法</h2>
         <p>在 MorphoTV 初始化界面输入以下代理地址：</p>
         <div class="endpoint">${req.url}proxy/</div>
+        <div class="endpoint">{
+  "PROXY_BASE_URL": "${req.url}proxy/"
+}</div>
         <h2>功能特性</h2>
         <ul>
           <li>✅ 支持 CORS 跨域请求</li>
