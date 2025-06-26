@@ -19,7 +19,9 @@ app.get("/", (req: Request, res: Response) => {
     status: "running",
     message: "MorphoTV Proxy Server is running",
     proxyEndpoint: "/proxy/",
-    usage: "Use /proxy/{target-url} to proxy requests"
+    usage: "Use /proxy/{target-url} to proxy requests",
+    version: "1.0.0",
+    platform: "Express.js"
   });
 });
 
@@ -36,10 +38,13 @@ app.all("/proxy/*", async (req: Request, res: Response) => {
     const headers = { ...req.headers };
     delete headers.host;
     delete headers.connection;
+    delete headers['content-length'];
 
     // 添加一些必要的请求头
-    headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
-    console.log(targetUrl);
+    headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+    
+    console.log(`[${new Date().toISOString()}] ${method.toUpperCase()} ${targetUrl}`);
+    
     // 发送请求到目标服务器
     const response = await axios({
       method,
@@ -47,23 +52,19 @@ app.all("/proxy/*", async (req: Request, res: Response) => {
       headers,
       data: method !== "get" ? req.body : undefined,
       params: method === "get" ? req.query : undefined,
+      timeout: 30000, // 30秒超时
+      maxRedirects: 5,
     });
 
     // 设置响应头
-    // Object.entries(response.headers).forEach(([key, value]) => {
-    //   if (key.toLowerCase() !== 'content-encoding') {
-    //     res.set(key, value as string);
-    //   }
-    // });
-
-    // console.log("响应结果"+response.data);
-    // 确保设置正确的 Content-Type
-    // res.set('Content-Type', 'application/json');
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    
     // 发送响应
     res.status(response.status).send(response.data);
   } catch (error) {
-    console.log(error);
-    console.error("Proxy error:", error instanceof Error ? error.message : "Unknown error");
+    console.error(`[${new Date().toISOString()}] Proxy error:`, error instanceof Error ? error.message : "Unknown error");
 
     // 如果目标服务器返回了错误响应，转发该响应
     if (axios.isAxiosError(error)) {
@@ -74,17 +75,30 @@ app.all("/proxy/*", async (req: Request, res: Response) => {
         res.status(500).json({
           error: "Proxy error",
           message: axiosError.message,
+          timestamp: new Date().toISOString()
         });
       }
     } else {
       res.status(500).json({
         error: "Proxy error",
         message: error instanceof Error ? error.message : "Unknown error",
+        timestamp: new Date().toISOString()
       });
     }
   }
 });
 
+// 健康检查端点
+app.get("/health", (req: Request, res: Response) => {
+  res.json({
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 app.listen(port, () => {
-  console.log(`Proxy server is running on port ${port}`);
+  console.log(`🚀 MorphoTV Proxy Server is running on port ${port}`);
+  console.log(`📍 Health check: http://localhost:${port}/health`);
+  console.log(`🔗 Proxy endpoint: http://localhost:${port}/proxy/`);
 });
