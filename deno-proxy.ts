@@ -1,5 +1,3 @@
-import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
-
 // 启用 CORS 支持的函数
 function enableCors(response: Response): Response {
   response.headers.set("Access-Control-Allow-Origin", "*");
@@ -25,21 +23,27 @@ async function handleProxyRequest(req: Request): Promise<Response> {
   }
 
   try {
-    // 配置请求选项
-    const fetchOptions: RequestInit = {
-      method: req.method,
-      headers: new Headers(req.headers),
-    };
+    // 创建新的 Headers 对象
+    const headers = new Headers();
 
-    // 删除不必要的头信息
-    fetchOptions.headers.delete("host");
-    fetchOptions.headers.delete("connection");
+    // 复制原始请求头，但排除一些不需要的头
+    for (const [key, value] of req.headers.entries()) {
+      if (!["host", "connection", "content-length"].includes(key.toLowerCase())) {
+        headers.set(key, value);
+      }
+    }
 
     // 添加必要的 User-Agent 头
-    fetchOptions.headers.set(
+    headers.set(
       "User-Agent",
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
     );
+
+    // 配置请求选项
+    const fetchOptions: RequestInit = {
+      method: req.method,
+      headers: headers,
+    };
 
     // 如果请求不是 GET 方法，传递请求 body
     if (req.method !== "GET") {
@@ -75,10 +79,8 @@ async function handleProxyRequest(req: Request): Promise<Response> {
   }
 }
 
-// 创建 Deno HTTP 服务器
-const port = Number(Deno.env.get("PORT")) || 8080;
-
-serve(req => {
+// 处理 HTTP 请求的主函数
+async function handler(req: Request): Promise<Response> {
   const url = new URL(req.url);
   if (req.method === "OPTIONS") {
     // 处理预检请求
@@ -123,6 +125,7 @@ serve(req => {
       new Response("Not Found", { status: 404, headers: { "Content-Type": "text/plain" } }),
     );
   }
-}, { port });
+}
 
-console.log(`🚀 MorphoTV 代理服务器运行在端口 ${port}`);
+// 导出 handler 函数供 Deno Deploy 使用
+export default handler;
