@@ -1,85 +1,32 @@
-# MorphoTV 代理服务器部署方案集合
+# MorphoTV 云端代理服务器部署方案
 
-> 🎬 为 MorphoTV 项目提供的完整代理服务器解决方案，解决跨域请求问题
+> ☁️ 为 MorphoTV 项目提供的云端代理服务器解决方案，解决跨域请求问题
 
 ## 📋 方案概览
 
-本文件夹包含了 5 种不同的代理服务器部署方案，每种方案都有其独特的优势和适用场景：
+本文件夹包含了 **4 种云端代理服务器部署方案**，每种方案都有其独特的优势和适用场景：
 
 | 方案 | 平台 | 难度 | 性能 | 成本 | 推荐指数 |
 |------|------|------|------|------|----------|
-| [Express 本地服务器](#1-express-本地服务器) | 本地/VPS | ⭐⭐ | ⭐⭐⭐⭐ | 免费/低 | ⭐⭐⭐⭐⭐ |
-| [Deno Deploy](#2-deno-deploy) | 云端 | ⭐⭐ | ⭐⭐⭐⭐⭐ | 免费 | ⭐⭐⭐⭐⭐ |
-| [Cloudflare Workers](#3-cloudflare-workers) | 云端 | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 免费 | ⭐⭐⭐⭐ |
-| [Vercel Edge Functions](#4-vercel-edge-functions) | 云端 | ⭐⭐⭐ | ⭐⭐⭐⭐ | 免费 | ⭐⭐⭐⭐ |
-| [Deno 本地运行](#5-deno-本地运行) | 本地 | ⭐ | ⭐⭐⭐ | 免费 | ⭐⭐⭐ |
+| [Deno Deploy](#1-deno-deploy) | 云端 | ⭐⭐ | ⭐⭐⭐⭐⭐ | 免费 | ⭐⭐⭐⭐⭐ |
+| [Cloudflare Workers](#2-cloudflare-workers) | 云端 | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 免费 | ⭐⭐⭐⭐ |
+| [Vercel Edge Functions](#3-vercel-edge-functions) | 云端 | ⭐⭐⭐ | ⭐⭐⭐⭐ | 免费 | ⭐⭐⭐⭐ |
+| [Deno 本地运行](#4-deno-本地运行) | 本地 | ⭐ | ⭐⭐⭐ | 免费 | ⭐⭐⭐ |
+
+> 🏠 **本地部署**: 如需本地 Express 服务器部署，请查看 [`../server/`](../server/) 文件夹
 
 ## 🚀 快速开始
 
 ### 推荐方案选择
 
-- **🏠 本地开发**: Express 本地服务器
 - **☁️ 云端部署**: Deno Deploy (最简单)
 - **🌐 全球加速**: Cloudflare Workers
 - **⚡ 零配置**: Vercel Edge Functions
+- **🦕 本地 Deno**: Deno 本地运行
 
 ---
 
-## 1. Express 本地服务器
-
-### 📁 文件
-- `express-proxy-server.ts` - 主服务器文件
-- `package.json` - 依赖配置
-- `Dockerfile` - Docker 配置
-- `docker-compose.yml` - Docker Compose 配置
-
-### ✨ 特点
-- ✅ 功能完整，稳定可靠
-- ✅ 支持本地开发和生产部署
-- ✅ 完整的错误处理和日志
-- ✅ 支持 Docker 容器化部署
-- ✅ 健康检查端点
-
-### 🛠️ 部署步骤
-
-#### 方式一：直接运行
-```bash
-# 1. 安装依赖
-npm install
-
-# 2. 开发模式启动
-npm run dev
-
-# 3. 生产模式启动
-npm run build && npm start
-```
-
-#### 方式二：Docker 部署
-```bash
-# 1. 构建镜像
-docker build -t morphotv-proxy .
-
-# 2. 运行容器
-docker run -p 8080:8080 morphotv-proxy
-
-# 3. 或使用 docker-compose
-docker-compose up -d
-```
-
-### 🔧 配置
-- **代理地址**: `http://localhost:8080/proxy/`
-- **健康检查**: `http://localhost:8080/health`
-- **状态页面**: `http://localhost:8080/`
-
-### 💡 适用场景
-- 本地开发测试
-- 私有服务器部署
-- 需要完全控制的环境
-- 高并发场景
-
----
-
-## 2. Deno Deploy
+## 1. Deno Deploy
 
 ### 📁 文件
 - `deno-deploy-proxy.ts` - Deno Deploy 优化版本
@@ -125,7 +72,7 @@ docker-compose up -d
 
 ---
 
-## 3. Cloudflare Workers
+## 2. Cloudflare Workers
 
 ### 📁 文件
 - `cloudflare-worker.js` - Cloudflare Workers 代码
@@ -172,7 +119,7 @@ docker-compose up -d
 
 ---
 
-## 4. Vercel Edge Functions
+## 3. Vercel Edge Functions
 
 ### 📁 文件
 - `vercel-edge-function.ts` - Vercel Edge Functions 代码
@@ -186,41 +133,116 @@ docker-compose up -d
 
 ### 🛠️ 部署步骤
 
-1. **创建 Vercel 项目**
+#### 方法一：GitHub 自动部署（推荐）
+
+1. **准备项目文件**
    ```bash
    # 1. 创建项目目录
    mkdir morphotv-proxy-vercel
    cd morphotv-proxy-vercel
-   
+
    # 2. 初始化项目
    npm init -y
+   ```
+
+2. **安装依赖**
+   ```bash
+   # 安装 Next.js 和相关依赖
    npm install next@latest react@latest react-dom@latest
+   npm install -D typescript @types/react @types/node
    ```
 
-2. **创建 API 路由**
+3. **创建项目结构**
+
+   **选择一种路由方式**：
+
+   **App Router（推荐，Next.js 13+）**：
    ```bash
-   # 创建目录结构
-   mkdir -p pages/api/proxy
-   
+   # 创建 App Router 目录结构
+   mkdir -p app/api/proxy/[...slug]
+
    # 复制代码文件
-   cp vercel-edge-function.ts pages/api/proxy/[...slug].ts
+   cp ../vercel-edge-function.ts app/api/proxy/[...slug]/route.ts
    ```
 
-3. **部署到 Vercel**
+   **Pages Router（兼容旧版本）**：
    ```bash
-   # 安装 Vercel CLI
+   # 创建 Pages Router 目录结构
+   mkdir -p pages/api/proxy
+
+   # 复制代码文件
+   cp ../vercel-edge-function.ts pages/api/proxy/[...slug].ts
+   ```
+
+4. **配置 package.json**
+   ```json
+   {
+     "scripts": {
+       "dev": "next dev",
+       "build": "next build",
+       "start": "next start"
+     }
+   }
+   ```
+
+5. **推送到 GitHub 并连接 Vercel**
+   - 将项目推送到 GitHub 仓库
+   - 在 [Vercel Dashboard](https://vercel.com/dashboard) 导入项目
+   - Vercel 会自动检测 Next.js 项目并部署
+
+#### 方法二：Vercel CLI 部署
+
+1. **安装 Vercel CLI**
+   ```bash
    npm i -g vercel
-   
-   # 部署
+   ```
+
+2. **登录并部署**
+   ```bash
+   # 登录 Vercel
+   vercel login
+
+   # 部署项目
+   vercel --prod
+   ```
+
+#### 方法三：单文件部署（最简单）
+
+1. **创建最小项目**
+   ```bash
+   mkdir morphotv-proxy-simple
+   cd morphotv-proxy-simple
+
+   # 创建 package.json
+   echo '{"type": "module"}' > package.json
+
+   # 创建 API 路由
+   mkdir -p api/proxy
+   cp ../vercel-edge-function.ts api/proxy/[...slug].ts
+   ```
+
+2. **直接部署**
+   ```bash
    vercel --prod
    ```
 
 ### 🔧 配置
+
+部署成功后，在 MorphoTV 中使用以下配置：
+
 ```json
 {
   "PROXY_BASE_URL": "https://your-app.vercel.app/api/proxy/"
 }
 ```
+
+**注意事项**：
+- 替换 `your-app` 为您的实际 Vercel 应用名称
+- 确保 URL 以 `/api/proxy/` 结尾
+- Vercel 会自动提供 HTTPS 证书
+
+**测试代理功能**：
+访问 `https://your-app.vercel.app/api/proxy/https/httpbin.org/get` 测试是否正常工作。
 
 ### 💡 适用场景
 - Next.js 项目
@@ -230,7 +252,7 @@ docker-compose up -d
 
 ---
 
-## 5. Deno 本地运行
+## 4. Deno 本地运行
 
 ### 📁 文件
 - `deno-proxy-original.ts` - 本地 Deno 运行版本
@@ -255,16 +277,17 @@ docker-compose up -d
 
 2. **运行服务器**
    ```bash
-   # 启动服务器
+   # 启动服务器（默认端口8080）
    deno run --allow-net --allow-env deno-proxy-original.ts
-   
-   # 指定端口
+
+   # 指定自定义端口
    PORT=3000 deno run --allow-net --allow-env deno-proxy-original.ts
    ```
 
 ### 🔧 配置
-- **代理地址**: `http://localhost:8080/proxy/`
-- **状态页面**: `http://localhost:8080/`
+- **默认端口**: 8080
+- **代理地址**: `http://localhost:8080/proxy/` （默认）或 `http://localhost:3000/proxy/` （自定义端口）
+- **状态页面**: `http://localhost:8080/` （默认）或 `http://localhost:3000/` （自定义端口）
 
 ### 💡 适用场景
 - Deno 开发环境

@@ -56,146 +56,164 @@ docker run -d --name morphotv --restart unless-stopped -p 7180:80 lampon/morphot
 
 # 如何使用
 
-## 系统初始化
-第一次访问会强制要求初始化系统，目的是为了在localstore里存储一个接口代理地址，项目是纯前端，数据来源第三方，接口会存在跨域请求限制，所以需要一个代理接口请求地址。这里给出一个Deno示例代码，可以部署到[Deno](https://dash.deno.com/)上使用。
+## 代理服务器配置
 
-```typescript
-import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
+### 为什么需要代理服务器？
 
-// 启用 CORS 支持的函数
-function enableCors(response: Response): Response {
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  return response;
+MorphoTV 是一个纯前端应用，数据来源于第三方采集站。由于浏览器的同源策略限制，直接访问这些第三方 API 会遇到 **跨域请求（CORS）** 问题。因此需要配置一个代理服务器来转发请求，解决跨域限制。
+
+### 🚀 快速部署方案
+
+我们提供了 **5 种不同的代理服务器部署方案**，您可以根据自己的需求选择最适合的方案：
+
+| 方案 | 平台 | 难度 | 性能 | 成本 | 推荐指数 |
+|------|------|------|------|------|----------|
+| [Express 本地服务器](server/README.md) | 本地/VPS | ⭐⭐ | ⭐⭐⭐⭐ | 免费/低 | ⭐⭐⭐⭐⭐ |
+| [Deno Deploy](deploy-proxy/README.md#1-deno-deploy) | 云端 | ⭐⭐ | ⭐⭐⭐⭐⭐ | 免费 | ⭐⭐⭐⭐⭐ |
+| [Cloudflare Workers](deploy-proxy/README.md#2-cloudflare-workers) | 云端 | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 免费 | ⭐⭐⭐⭐ |
+| [Vercel Edge Functions](deploy-proxy/README.md#3-vercel-edge-functions) | 云端 | ⭐⭐⭐ | ⭐⭐⭐⭐ | 免费 | ⭐⭐⭐⭐ |
+| [Deno 本地运行](deploy-proxy/README.md#4-deno-本地运行) | 本地 | ⭐ | ⭐⭐⭐ | 免费 | ⭐⭐⭐ |
+
+> 📁 **部署指南**:
+> - **本地部署**: 查看 [`server/`](server/) 文件夹获取 Express 服务器部署指南
+> - **云端部署**: 查看 [`deploy-proxy/`](deploy-proxy/) 文件夹获取云端部署方案
+
+### 🎯 推荐方案选择
+
+- **🏠 本地开发**: Express 本地服务器 - 功能完整，稳定可靠
+- **☁️ 云端部署**: Deno Deploy - 零配置，全球 CDN 加速
+- **🌐 全球加速**: Cloudflare Workers - 极低延迟，边缘计算
+- **⚡ 零配置**: Vercel Edge Functions - 与 Next.js 完美集成
+
+### 📋 快速配置示例
+
+#### 方法一：JSON 数据配置
+在 MorphoTV 初始化界面的 "JSON数据" 标签页中输入：
+
+```json
+{
+  "PROXY_BASE_URL": "https://your-proxy-domain.com/proxy/"
 }
-
-// 处理代理请求的函数
-async function handleProxyRequest(req: Request): Promise<Response> {
-  const url = new URL(req.url);
-
-  // 提取目标 URL (去掉 `/proxy/` 前缀)
-  const targetUrl = decodeURIComponent(url.pathname.replace("/proxy/", ""));
-
-  if (!targetUrl) {
-    return enableCors(
-      new Response(JSON.stringify({ error: "Target URL is required!" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
-  }
-
-  try {
-    // 配置请求选项
-    const fetchOptions: RequestInit = {
-      method: req.method,
-      headers: new Headers(req.headers),
-    };
-
-    // 删除不必要的头信息
-    fetchOptions.headers.delete("host");
-    fetchOptions.headers.delete("connection");
-
-    // 添加必要的 User-Agent 头
-    fetchOptions.headers.set(
-      "User-Agent",
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    );
-
-    // 如果请求不是 GET 方法，传递请求 body
-    if (req.method !== "GET") {
-      const body = await req.text();
-      fetchOptions.body = body;
-    }
-
-    // 转发请求到目标服务器
-    const proxyResponse = await fetch(targetUrl, fetchOptions);
-
-    // 转发响应
-    const responseBody = await proxyResponse.text();
-    const response = new Response(responseBody, {
-      status: proxyResponse.status,
-      headers: proxyResponse.headers,
-    });
-
-    return enableCors(response);
-  } catch (error) {
-    console.error("Proxy error:", error);
-
-    const errorMessage = {
-      error: "Proxy error",
-      message: error instanceof Error ? error.message : "Unknown error",
-    };
-
-    return enableCors(
-      new Response(JSON.stringify(errorMessage), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
-  }
-}
-
-// 创建 Deno HTTP 服务器
-const port = Number(Deno.env.get("PORT")) || 8080;
-
-serve(req => {
-  const url = new URL(req.url);
-  if (req.method === "OPTIONS") {
-    // 处理预检请求
-    return enableCors(new Response(null, { status: 204 }));
-  } else if (url.pathname.startsWith("/proxy/")) {
-    return handleProxyRequest(req);
-  } else if (url.pathname === "/") {
-    // 为根路径返回一个简单的页面
-    const html = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Proxy Server</title>
-      </head>
-      <body>
-        <h1>Welcome to the Proxy Server</h1>
-        <p>To use this proxy, send requests to the <code>/proxy/{target-url}</code> endpoint.</p>
-      </body>
-      </html>
-    `;
-    return enableCors(new Response(html, { status: 200, headers: { "Content-Type": "text/html" } }));
-  } else {
-    return enableCors(
-      new Response("Not Found", { status: 404, headers: { "Content-Type": "text/plain" } }),
-    );
-  }
-}, { port });
-
-console.log(`Proxy server is running on port ${port}`);
 ```
+
+#### 方法二：上传配置文件
+创建一个 `config.json` 文件并上传：
+
+```json
+{
+  "PROXY_BASE_URL": "https://your-proxy-domain.com/proxy/"
+}
+```
+
+#### 常见代理地址格式示例
+
+```bash
+# Deno Deploy
+https://your-project.deno.dev/proxy/
+
+# Cloudflare Workers
+https://your-worker.your-subdomain.workers.dev/proxy/
+
+# Vercel
+https://your-app.vercel.app/api/proxy/
+
+# 本地服务器
+http://localhost:8080/proxy/
+```
+
+## 系统初始化
+
+第一次访问 MorphoTV 时，系统会要求进行初始化配置。这是为了在浏览器的 localStorage 中存储代理服务器地址。
+
+### 初始化步骤
+
+1. **打开 MorphoTV 应用**
+2. **选择配置方式**：
+   - JSON 数据输入
+   - 上传配置文件
+   - 远程地址导入
+3. **输入代理地址**（参考上方配置示例）
+4. **点击导入**，系统自动重新加载
+5. **开始使用** MorphoTV
+
+### 🔧 故障排除
+
+#### 常见问题及解决方案
+
+**❌ 问题：代理服务器无法访问**
+```
+解决方案：
+1. 检查代理服务器是否正常运行
+2. 确认代理地址格式正确（必须以 /proxy/ 结尾）
+3. 验证防火墙设置
+4. 尝试在浏览器中直接访问代理地址
+```
+
+**❌ 问题：仍然出现跨域错误**
+```
+解决方案：
+1. 确认代理服务器已启用 CORS
+2. 检查代理服务器日志
+3. 尝试更换代理服务器
+4. 清除浏览器缓存后重试
+```
+
+**❌ 问题：请求超时**
+```
+解决方案：
+1. 检查网络连接
+2. 尝试更换代理服务器地址
+3. 检查目标采集站是否可访问
+4. 增加请求超时时间
+```
+
+#### 🧪 测试代理功能
+
+访问以下地址测试代理是否正常工作：
+```
+https://your-proxy-domain.com/proxy/https://httpbin.org/get
+```
+
+如果返回 JSON 格式的响应数据，说明代理服务器工作正常。
+
+### 💡 高级配置
+
+#### 自定义采集站
+您可以在系统中添加更多采集站：
+1. 进入设置页面
+2. 添加采集站 URL
+3. 配置采集站参数
+4. 保存并测试
+
+#### M3U8 代理设置
+用于过滤广告和提升播放速度，详见 [M3U8 代理设置](#m3u8-代理设置) 章节。
+
+---
+
+> 💡 **提示**: 如果您在配置过程中遇到问题，可以查看 [`deploy-proxy/README.md`](deploy-proxy/README.md) 获取详细的部署指南和故障排除方法。
 
 ## 观看方式
 
-1. 采集站资源
-   内置4种来源，可以自行添加更多
-   * 支持在线观看
-   * 历史播放记录
-   * 自助设置跳过片头片尾
-2. 网盘资源
-   自行添加有网盘资源的站，再配合AI大模型提取。
-3. 各大视频网站地址解析
-   复制视频地址到搜索框进行搜索即可
-4. 完整m3u8视频地址，直接复制地址到搜索框搜索即可。
+1. **采集站资源**
+   - 内置4种来源，可以自行添加更多
+   - 支持在线观看
+   - 历史播放记录
+   - 自助设置跳过片头片尾
 
-# M3U8代理设置
+2. **网盘资源**
+   - 自行添加有网盘资源的站，再配合AI大模型提取
 
-这个主要用于过滤采集站内存存在的插针广告或者提速视频播放作用，如果要构建一个m3u8代理地址，参考项目：https://github.com/eraycc/m3u8-proxy-script
+3. **各大视频网站地址解析**
+   - 复制视频地址到搜索框进行搜索即可
+
+4. **完整 M3U8 视频地址**
+   - 直接复制地址到搜索框搜索即可
+
+## M3U8 代理设置
+
+这个主要用于过滤采集站内存在的插针广告或者提速视频播放作用。如果要构建一个 M3U8 代理地址，可以参考项目：[M3U8 Proxy Filter Script](https://github.com/eraycc/m3u8-proxy-script)
 
 ## 鸣谢项目
 
-[LibreTV](https://github.com/LibreSpark/LibreTV)
-
-[M3U8 Proxy Filter Script](https://github.com/eraycc/m3u8-proxy-script)
-
-
-
+- [LibreTV](https://github.com/LibreSpark/LibreTV)
+- [M3U8 Proxy Filter Script](https://github.com/eraycc/m3u8-proxy-script)

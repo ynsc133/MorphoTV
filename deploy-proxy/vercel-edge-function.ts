@@ -1,11 +1,14 @@
 /**
  * MorphoTV 代理服务器 - Vercel Edge Functions 版本
- * 
+ *
  * 部署步骤：
- * 1. 在项目根目录创建 api/proxy/[...slug].ts 文件
+ * 1. 创建 app/api/proxy/[...slug]/route.ts 文件（App Router）
+ *    或 pages/api/proxy/[...slug].ts 文件（Pages Router）
  * 2. 复制此代码到该文件
  * 3. 部署到 Vercel
  * 4. 使用 https://your-app.vercel.app/api/proxy/ 作为代理地址
+ *
+ * 注意：此代码同时兼容 App Router 和 Pages Router
  */
 
 import { NextRequest, NextResponse } from 'next/server';
