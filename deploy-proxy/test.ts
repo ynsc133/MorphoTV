@@ -1,208 +1,128 @@
-// MorphoTV 代理服务器 - Deno Deploy 版本
-// 专为 Deno Deploy 平台优化
+import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 
 // 启用 CORS 支持的函数
 function enableCors(response: Response): Response {
-  const headers = new Headers(response.headers);
-  headers.set("Access-Control-Allow-Origin", "*");
-  headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
-  
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: headers,
-  });
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  return response;
 }
 
 // 处理代理请求的函数
 async function handleProxyRequest(req: Request): Promise<Response> {
   const url = new URL(req.url);
-  
+
   // 提取目标 URL (去掉 `/proxy/` 前缀)
   const targetUrl = decodeURIComponent(url.pathname.replace("/proxy/", ""));
-  
+
   if (!targetUrl) {
-    return new Response(JSON.stringify({ 
-      error: "Target URL is required!",
-      usage: "Use /proxy/{encoded-target-url} format"
-    }), {
-      status: 400,
-      headers: { 
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
-      },
-    });
+    return enableCors(
+      new Response(JSON.stringify({ error: "Target URL is required!" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
   }
 
   try {
-    // 创建新的 Headers 对象
-    const proxyHeaders = new Headers();
-    
-    // 复制原始请求头，但排除一些不需要的头
-    for (const [key, value] of req.headers.entries()) {
-      const lowerKey = key.toLowerCase();
-      if (!["host", "connection", "content-length", "cf-ray", "cf-connecting-ip"].includes(lowerKey)) {
-        proxyHeaders.set(key, value);
-      }
-    }
-
-    // 设置必要的请求头
-    proxyHeaders.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-    
     // 配置请求选项
     const fetchOptions: RequestInit = {
       method: req.method,
-      headers: proxyHeaders,
+      headers: new Headers(req.headers),
     };
 
-    // 如果请求不是 GET 或 HEAD 方法，传递请求 body
-    if (req.method !== "GET" && req.method !== "HEAD") {
-      fetchOptions.body = await req.arrayBuffer();
+    // 删除不必要的头信息
+    fetchOptions.headers.delete("host");
+    fetchOptions.headers.delete("connection");
+
+    // 添加必要的 User-Agent 头
+    fetchOptions.headers.set(
+      "User-Agent",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    );
+
+    // 如果请求不是 GET 方法，传递请求 body
+    if (req.method !== "GET") {
+      const body = await req.text();
+      fetchOptions.body = body;
     }
 
     // 转发请求到目标服务器
     const proxyResponse = await fetch(targetUrl, fetchOptions);
-    
-    // 创建响应并启用 CORS
-    return enableCors(proxyResponse);
-    
+
+    // 转发响应
+    const responseBody = await proxyResponse.text();
+    const response = new Response(responseBody, {
+      status: proxyResponse.status,
+      headers: proxyResponse.headers,
+    });
+
+    return enableCors(response);
   } catch (error) {
     console.error("Proxy error:", error);
 
-    const errorResponse = new Response(JSON.stringify({
-      error: "Proxy request failed",
+    const errorMessage = {
+      error: "Proxy error",
       message: error instanceof Error ? error.message : "Unknown error",
-      targetUrl: targetUrl
-    }), {
-      status: 500,
-      headers: { 
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
-      },
-    });
-    
-    return errorResponse;
+    };
+
+    return enableCors(
+      new Response(JSON.stringify(errorMessage), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
   }
 }
 
-// 主请求处理函数
-async function handler(req: Request): Promise<Response> {
+// 创建 Deno HTTP 服务器
+const port = Number(Deno.env.get("PORT")) || 8080;
+
+serve(req => {
   const url = new URL(req.url);
-  
-  // 处理 CORS 预检请求
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
-        "Access-Control-Max-Age": "86400",
-      },
-    });
-  }
-  
-  // 处理代理请求
-  if (url.pathname.startsWith("/proxy/")) {
+    // 处理预检请求
+    return enableCors(new Response(null, { status: 204 }));
+  } else if (url.pathname.startsWith("/proxy/")) {
     return handleProxyRequest(req);
-  }
-  
-  // 处理根路径 - 返回状态页面
-  if (url.pathname === "/") {
-    const html = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MorphoTV 代理服务器</title>
-    <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 800px; 
-            margin: 50px auto; 
-            padding: 20px;
-            background: #f8f9fa;
-            color: #333;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .status { 
-            color: #28a745; 
-            font-weight: bold; 
-            font-size: 18px;
-        }
-        .endpoint { 
-            background: #f1f3f4; 
-            padding: 15px; 
-            border-radius: 8px; 
-            font-family: 'Monaco', 'Menlo', monospace;
-            border-left: 4px solid #007bff;
-            margin: 15px 0;
-        }
-        .feature {
-            margin: 10px 0;
-            padding: 8px 0;
-        }
-        .feature::before {
-            content: "✅ ";
-            margin-right: 8px;
-        }
-        h1 { color: #007bff; }
-        h2 { color: #495057; margin-top: 30px; }
-    </style>
-</head>
-<body>
-    <div class="container">
+  } else if (url.pathname === "/") {
+    // 为根路径返回一个简单的页面
+    const html = `
+      <!DOCTYPE html>
+      <html lang="zh-CN">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MorphoTV 代理服务器</title>
+        <style>
+          body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+          .status { color: #28a745; font-weight: bold; }
+          .endpoint { background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; }
+        </style>
+      </head>
+      <body>
         <h1>🎬 MorphoTV 代理服务器</h1>
         <p class="status">✅ 服务器运行正常</p>
-        
         <h2>使用方法</h2>
         <p>在 MorphoTV 初始化界面输入以下代理地址：</p>
-        <div class="endpoint">${url.origin}/proxy/</div>
-        
+        <div class="endpoint">${req.url}proxy/</div>
         <h2>功能特性</h2>
-        <div class="feature">支持 CORS 跨域请求</div>
-        <div class="feature">自动转发请求头</div>
-        <div class="feature">支持所有 HTTP 方法</div>
-        <div class="feature">错误处理和日志记录</div>
-        <div class="feature">优化的性能和稳定性</div>
-        
-        <h2>测试接口</h2>
-        <p>访问 <code>/proxy/https://httpbin.org/get</code> 来测试代理功能</p>
-        
-        <p style="margin-top: 30px; color: #6c757d; font-size: 14px;">
-            <small>Powered by Deno Deploy | Version 2.0</small>
-        </p>
-    </div>
-</body>
-</html>`;
-    
-    return new Response(html, {
-      status: 200,
-      headers: { 
-        "Content-Type": "text/html; charset=utf-8",
-        "Access-Control-Allow-Origin": "*"
-      },
-    });
+        <ul>
+          <li>✅ 支持 CORS 跨域请求</li>
+          <li>✅ 自动转发请求头</li>
+          <li>✅ 支持所有 HTTP 方法</li>
+          <li>✅ 错误处理和日志记录</li>
+        </ul>
+        <p><small>Powered by Deno Deploy</small></p>
+      </body>
+      </html>
+    `;
+    return enableCors(new Response(html, { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }));
+  } else {
+    return enableCors(
+      new Response("Not Found", { status: 404, headers: { "Content-Type": "text/plain" } }),
+    );
   }
-  
-  // 处理其他路径
-  return new Response(JSON.stringify({
-    error: "Not Found",
-    message: "Available endpoints: / (status), /proxy/{url} (proxy)"
-  }), {
-    status: 404,
-    headers: { 
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*"
-    },
-  });
-}
+}, { port });
 
-// 导出默认处理函数供 Deno Deploy 使用
-export default handler;
+console.log(`🚀 MorphoTV 代理服务器运行在端口 ${port}`);
