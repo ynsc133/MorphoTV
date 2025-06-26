@@ -152,7 +152,7 @@ export default function MainLayout() {
           <div className=" grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <h3 className="font-semibold mb-4">影视资源站</h3>
-              <p className="text-sm text-muted-foreground">基于采集站和网站资源站的全网影视资源搜索平台</p>
+              <p className="text-sm text-muted-foreground">基于采集站和网盘资源站的全网影视资源搜索平台</p>
             </div>
             <div>
               <h4 className="font-medium mb-4">功能</h4>

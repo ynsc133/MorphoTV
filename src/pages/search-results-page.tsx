@@ -162,7 +162,7 @@ export default function SearchResultsPage() {
       // 获取用户自定义的提示词
       const customPrompt = localStorage.getItem("tg_prompt") || "";
       
-      const basePrompt = `请从以下网站资源站内容中提取包含关键词"${searchParams.get("q")}"的网盘资源信息，并以JSON格式返回。要求：
+      const basePrompt = `请从以下网盘资源站内容中提取包含关键词"${searchParams.get("q")}"的网盘资源信息，并以JSON格式返回。要求：
 1. 返回格式必须为JSON，包含channel_name和resources数组
 2. resources数组中的每个资源必须包含以下字段：
    - title: 资源标题
@@ -680,7 +680,7 @@ export default function SearchResultsPage() {
             <Search className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">未找到相关资源</h3>
             <p className="text-muted-foreground mb-4">没有找到与 "{searchQuery}" 相关的影视作品或网盘资源</p>
-            <p className="text-sm text-muted-foreground">请检查采集站和网站资源站配置，或尝试其他关键词</p>
+            <p className="text-sm text-muted-foreground">请检查采集站和网盘资源站配置，或尝试其他关键词</p>
           </div>
         )}
       </div>
