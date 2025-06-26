@@ -115,51 +115,63 @@ async function handler(req: Request): Promise<Response> {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MorphoTV 代理服务器</title>
+    <title>MorphoTV 代理服务器 - Deno Deploy</title>
     <style>
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             max-width: 800px; 
             margin: 50px auto; 
             padding: 20px;
-            background: #f8f9fa;
-            color: #333;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
         }
         .container {
-            background: white;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         .status { 
-            color: #28a745; 
+            color: #4ade80; 
             font-weight: bold; 
             font-size: 18px;
         }
         .endpoint { 
-            background: #f1f3f4; 
+            background: rgba(0, 0, 0, 0.2); 
             padding: 15px; 
             border-radius: 8px; 
             font-family: 'Monaco', 'Menlo', monospace;
-            border-left: 4px solid #007bff;
+            border-left: 4px solid #4ade80;
             margin: 15px 0;
+            word-break: break-all;
         }
         .feature {
             margin: 10px 0;
             padding: 8px 0;
         }
         .feature::before {
-            content: "✅ ";
+            content: "🦕 ";
             margin-right: 8px;
         }
-        h1 { color: #007bff; }
-        h2 { color: #495057; margin-top: 30px; }
+        h1 { color: #fbbf24; }
+        h2 { color: #e5e7eb; margin-top: 30px; }
+        .badge {
+            background: #4ade80;
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🎬 MorphoTV 代理服务器</h1>
-        <p class="status">✅ 服务器运行正常</p>
+        <span class="badge">Deno Deploy</span>
+        <p class="status">🦕 服务器运行正常</p>
         
         <h2>使用方法</h2>
         <p>在 MorphoTV 初始化界面输入以下代理地址：</p>
@@ -171,12 +183,13 @@ async function handler(req: Request): Promise<Response> {
         <div class="feature">支持所有 HTTP 方法</div>
         <div class="feature">错误处理和日志记录</div>
         <div class="feature">优化的性能和稳定性</div>
+        <div class="feature">TypeScript 原生支持</div>
         
         <h2>测试接口</h2>
         <p>访问 <code>/proxy/https://httpbin.org/get</code> 来测试代理功能</p>
         
-        <p style="margin-top: 30px; color: #6c757d; font-size: 14px;">
-            <small>Powered by Deno Deploy | Version 2.0</small>
+        <p style="margin-top: 30px; color: #d1d5db; font-size: 14px;">
+            <small>Powered by Deno Deploy | 现代 JavaScript 运行时</small>
         </p>
     </div>
 </body>

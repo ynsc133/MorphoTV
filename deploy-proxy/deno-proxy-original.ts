@@ -1,3 +1,6 @@
+// MorphoTV 代理服务器 - 原始 Deno 版本
+// 适用于本地 Deno 运行时
+
 // 启用 CORS 支持的函数
 function enableCors(response: Response): Response {
   response.headers.set("Access-Control-Allow-Origin", "*");
@@ -97,25 +100,59 @@ async function handler(req: Request): Promise<Response> {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>MorphoTV 代理服务器</title>
         <style>
-          body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+          body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 50px auto; 
+            padding: 20px; 
+            background: #f5f5f5;
+          }
+          .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          }
           .status { color: #28a745; font-weight: bold; }
-          .endpoint { background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; }
+          .endpoint { 
+            background: #f8f9fa; 
+            padding: 10px; 
+            border-radius: 5px; 
+            font-family: monospace; 
+            border-left: 4px solid #007bff;
+            margin: 15px 0;
+          }
+          h1 { color: #007bff; }
+          .badge {
+            background: #6c757d;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+          }
         </style>
       </head>
       <body>
-        <h1>🎬 MorphoTV 代理服务器</h1>
-        <p class="status">✅ 服务器运行正常</p>
-        <h2>使用方法</h2>
-        <p>在 MorphoTV 初始化界面输入以下代理地址：</p>
-        <div class="endpoint">${req.url}proxy/</div>
-        <h2>功能特性</h2>
-        <ul>
-          <li>✅ 支持 CORS 跨域请求</li>
-          <li>✅ 自动转发请求头</li>
-          <li>✅ 支持所有 HTTP 方法</li>
-          <li>✅ 错误处理和日志记录</li>
-        </ul>
-        <p><small>Powered by Deno Deploy</small></p>
+        <div class="container">
+          <h1>🎬 MorphoTV 代理服务器</h1>
+          <span class="badge">Deno Runtime</span>
+          <p class="status">✅ 服务器运行正常</p>
+          <h2>使用方法</h2>
+          <p>在 MorphoTV 初始化界面输入以下代理地址：</p>
+          <div class="endpoint">${req.url}proxy/</div>
+          <h2>功能特性</h2>
+          <ul>
+            <li>✅ 支持 CORS 跨域请求</li>
+            <li>✅ 自动转发请求头</li>
+            <li>✅ 支持所有 HTTP 方法</li>
+            <li>✅ 错误处理和日志记录</li>
+            <li>✅ TypeScript 原生支持</li>
+          </ul>
+          <h2>本地运行</h2>
+          <p>使用以下命令启动服务器：</p>
+          <div class="endpoint">deno run --allow-net --allow-env deno-proxy-original.ts</div>
+          <p><small>Powered by Deno Runtime</small></p>
+        </div>
       </body>
       </html>
     `;
@@ -125,6 +162,17 @@ async function handler(req: Request): Promise<Response> {
       new Response("Not Found", { status: 404, headers: { "Content-Type": "text/plain" } }),
     );
   }
+}
+
+// 本地 Deno 运行时启动服务器
+if (import.meta.main) {
+  const port = Number(Deno.env.get("PORT")) || 8080;
+  
+  console.log(`🦕 MorphoTV 代理服务器启动中...`);
+  console.log(`📍 服务器地址: http://localhost:${port}`);
+  console.log(`🔗 代理端点: http://localhost:${port}/proxy/`);
+  
+  Deno.serve({ port }, handler);
 }
 
 // 导出 handler 函数供 Deno Deploy 使用
