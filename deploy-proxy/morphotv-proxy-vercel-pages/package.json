@@ -1,23 +1,20 @@
 {
-  "name": "morphotv-proxy-vercel",
+  "name": "morphotv-proxy-vercel-pages",
   "version": "2.0.0",
-  "description": "MorphoTV Proxy Server for Vercel - Optimized Edge Functions",
+  "description": "MorphoTV Proxy Server for Vercel - Lightweight Pages Router Edition",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "lint": "next lint"
   },
   "dependencies": {
     "next": "15.1.0"
   },
   "devDependencies": {
-    "@types/node": "22.10.2",
     "eslint": "8.57.1",
-    "eslint-config-next": "15.1.0",
-    "typescript": "5.7.2"
+    "eslint-config-next": "15.1.0"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -28,7 +25,9 @@
     "edge-functions",
     "morphotv",
     "cors",
-    "api-proxy"
+    "api-proxy",
+    "pages-router",
+    "lightweight"
   ],
   "repository": {
     "type": "git",
