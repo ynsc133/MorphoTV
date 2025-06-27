@@ -44,7 +44,7 @@ vercel --prod
 
 ```json
 {
-  "PROXY_BASE_URL": "https://your-app.vercel.app/api/proxy"
+  "PROXY_BASE_URL": "https://your-app.vercel.app/api/proxy?url="
 }
 ```
 
