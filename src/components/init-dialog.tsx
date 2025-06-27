@@ -112,7 +112,7 @@ const InitDialog: React.FC<InitDialogProps> = ({ open, onOpenChange }) => {
             <TabsTrigger value="file">上传文件</TabsTrigger>
             <TabsTrigger value="url">远程地址</TabsTrigger>
           </TabsList>
-          <TabsContent value="json" className="space-y-4">
+          <TabsContent value="json" className="space-y-4 max-w-[450px] mx-auto">
             <Textarea
               placeholder={`请输入JSON配置数据，例如：
 {
@@ -120,7 +120,7 @@ const InitDialog: React.FC<InitDialogProps> = ({ open, onOpenChange }) => {
 }`}
               value={jsonData}
               onChange={(e) => setJsonData(e.target.value)}
-              className="min-h-[200px] font-mono text-sm"
+              className="h-[200px] w-full overflow-y-auto font-mono text-sm"
             />
             <Button className="w-full" onClick={handleImportFromJson}>
               <FileJson className="w-4 h-4 mr-2" />

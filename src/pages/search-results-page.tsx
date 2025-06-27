@@ -12,6 +12,7 @@ import { Movie, ApiSite } from "@/types/index";
 import { RouterUtils } from "@/utils/router";
 import { fetchWithProxy } from "@/utils/proxy";
 import noImg from "@/assets/no-img.svg";
+import * as cheerio from "cheerio";
 
 interface MovieResult {
   id: string;
@@ -62,6 +63,7 @@ interface SearchSite {
   name: string;
   url: string;
   enabled: boolean;
+  extractionType: string;
 }
 
 // 格式化时间为相对时间
@@ -96,6 +98,25 @@ const formatRelativeTime = (dateString: string): string => {
 
   const diffInYears = Math.floor(diffInMonths / 12);
   return `${diffInYears}年前`;
+};
+
+// 根据链接判断网盘平台
+const getPlatformByUrl = (url: string): string => {
+  try {
+    const u = new URL(url);
+    const host = u.hostname;
+    if (/alipan\.com|aliyundrive\.com/.test(host)) return "阿里云网盘";
+    if (/quark\.cn/.test(host)) return "夸克网盘";
+    if (/baidu\.com/.test(host)) return "百度网盘";
+    if (/189\.cn/.test(host)) return "天翼云网盘";
+    if (/xunlei\.com/.test(host)) return "迅雷云盘";
+    if (/123865\.com|123684\.com|123912\.com/.test(host)) return "123云盘";
+    if (/139\.com/.test(host)) return "移动云盘";
+    if (/uc\.cn/.test(host)) return "UC网盘";
+    return host;
+  } catch {
+    return "未知平台";
+  }
 };
 
 export default function SearchResultsPage() {
@@ -149,13 +170,13 @@ export default function SearchResultsPage() {
     }
   };
   // 使用AI模型提取网盘信息
-  const extractCloudInfo = async (htmlContent: string, channelName: string) => {
+  const extractCloudInfo = async (htmlContent: string, channelName: string): Promise<CloudResource[]> => {
     const model = getSelectedAIModel();
     const config = getAIModelConfig();
 
     if (!model || !config.apiUrl || !config.apiKey) {
       console.error("AI模型配置不完整");
-      return null;
+      return [];
     }
 
     try {
@@ -221,7 +242,7 @@ export default function SearchResultsPage() {
       const aiResponse = content as AIResponse;
       console.log(aiResponse);
       // 转换AI返回的数据为CloudResource格式
-      return aiResponse.resources.map((resource) => ({
+      const resources = aiResponse.resources.map((resource) => ({
         id: Date.now() + Math.random(),
         title: resource.title,
         poster: resource.poster || "/placeholder.svg?height=400&width=300", // 默认海报
@@ -232,10 +253,76 @@ export default function SearchResultsPage() {
         shareCode: resource.share_code || "",
         tags: resource.tags || [],
       }));
+      // 按发布时间倒序排序
+      const sortedResources = resources.sort((a, b) => {
+        const t1 = new Date(a.publishTime).getTime();
+        const t2 = new Date(b.publishTime).getTime();
+        return t2 - t1;
+      });
+      return sortedResources;
     } catch (error) {
       console.error("AI模型提取失败:", error);
-      return null;
+      return [];
     }
+  };
+
+  // TG频道规则提取网盘信息
+  const extractCloudInfoByTG = (htmlContent: string, channelName: string): CloudResource[] => {
+    const $ = cheerio.load(htmlContent);
+    const items: CloudResource[] = [];
+    // 获取频道名（如有）
+    let sourceChannel = channelName;
+    const channelHeader = $(".tgme_header_link").find("img").attr("src");
+    if (channelHeader) {
+      sourceChannel = channelName;
+    }
+
+    // 遍历每个消息容器
+    $(".tgme_widget_message_wrap").each((_: unknown, element: unknown) => {
+   
+      const messageEl = $(element as any);
+    
+      // 发布时间
+      const pubDate = messageEl.find("time").attr("datetime") || new Date().toISOString();
+      // 标题（第一个<br>前的内容）
+      const html = messageEl.find(".js-message_text").html() || "";
+      const title = html.split("<br>")[0]?.replace(/<[^>]+>/g, "").replace(/\n/g, "").trim() || "";
+
+      // 云盘链接
+      const links = messageEl.find(".tgme_widget_message_text a").map((_: unknown, el: unknown) => (el as any).href || (el as any).attribs?.href || "").get();
+      
+      // 只保留平台能识别的云盘链接
+      const validLinks = (links as string[]).filter((link: string) => {
+     
+        const platform = getPlatformByUrl(link);
+     
+        // 只要不是"未知平台"且不是原始 host
+        return platform && platform !== "未知平台" && !/^([\w.-]+)$/.test(platform);
+      });
+  
+      if (validLinks.length === 0) return;
+ 
+      validLinks.forEach((link: string) => {
+        items.push({
+          id: Date.now() + Math.random(),
+          title,
+          poster: '', // TG规则不提取封面
+          sourceChannel,
+          platform: getPlatformByUrl(link),
+          publishTime: pubDate,
+          shareUrl: link,
+          shareCode: '',
+          tags: [],
+        });
+      });
+    });
+    // 按发布时间倒序排序
+    const sortedItems = items.sort((a, b) => {
+      const t1 = new Date(a.publishTime).getTime();
+      const t2 = new Date(b.publishTime).getTime();
+      return t2 - t1;
+    });
+    return sortedItems;
   };
 
   // 获取启用的搜索站点列表
@@ -258,10 +345,8 @@ export default function SearchResultsPage() {
       setCloudResults([]);
       return;
     }
-
     setIsCloudLoading(true);
     const results: CloudResource[] = [];
-
     try {
       // 并行搜索所有启用的站点
       const searchPromises = sites.map(async (site) => {
@@ -269,46 +354,37 @@ export default function SearchResultsPage() {
           const searchUrl = replaceKeywordInUrl(site.url, query);
           const response = await fetchWithProxy(searchUrl);
           if (!response.ok) throw new Error(`站点 ${site.name} 请求失败`);
-
           const html = await response.text();
-          const cloudInfos = await extractCloudInfo(html, site.name);
-
-          if (cloudInfos) {
-            return cloudInfos;
+          let cloudInfos: CloudResource[] = [];
+          if (site.extractionType === 'ai') {
+            const aiResult = await extractCloudInfo(html, site.name);
+            if (aiResult) cloudInfos = aiResult;
+          } else {
+            cloudInfos = extractCloudInfoByTG(html, site.name);
           }
-          return [];
+          return cloudInfos;
         } catch (error) {
           console.error(`搜索站点 ${site.name} 失败:`, error);
           return [];
         }
       });
-
       const siteResults = await Promise.all(searchPromises);
       const allResults = siteResults.flat();
-      
       // 过滤重复链接，保留最新的资源
       const uniqueResults = allResults.reduce((acc: CloudResource[], current) => {
         const existingIndex = acc.findIndex(item => item.shareUrl === current.shareUrl);
-        
         if (existingIndex === -1) {
-          // 如果链接不存在，直接添加
           acc.push(current);
         } else {
-          console.log("存在相同");
-          // 如果链接已存在，比较发布时间，保留最新的
           const existing = acc[existingIndex];
           const existingTime = new Date(existing.publishTime).getTime();
           const currentTime = new Date(current.publishTime).getTime();
-          
           if (currentTime > existingTime) {
-            // 当前资源更新，替换旧资源
             acc[existingIndex] = current;
           }
         }
-        
         return acc;
       }, []);
-      
       results.push(...uniqueResults);
     } catch (error) {
       console.error("搜索网盘资源失败:", error);
