@@ -41,45 +41,87 @@ function corsResponse(response, origin = '*') {
   });
 }
 
-// 处理代理请求
+// 处理代理请求 - 性能优化版
 async function handleProxyRequest(request, targetUrl) {
   try {
     // 创建新的请求头
     const proxyHeaders = new Headers();
-    
-    // 复制原始请求头，排除一些不需要的头
+
+    // 复制原始请求头，排除 Cloudflare 特有的头
     for (const [key, value] of request.headers.entries()) {
       const lowerKey = key.toLowerCase();
-      if (!['host', 'cf-ray', 'cf-connecting-ip', 'cf-visitor', 'x-forwarded-proto', 'x-real-ip'].includes(lowerKey)) {
+      if (!['host', 'cf-ray', 'cf-connecting-ip', 'cf-visitor', 'x-forwarded-proto', 'x-real-ip', 'cf-ipcountry'].includes(lowerKey)) {
         proxyHeaders.set(key, value);
       }
     }
 
-    // 设置必要的请求头
+    // 设置优化的请求头
     proxyHeaders.set('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    proxyHeaders.set('Accept', '*/*');
+    proxyHeaders.set('Accept-Language', 'zh-CN,zh;q=0.9,en;q=0.8');
+    proxyHeaders.set('Cache-Control', 'no-cache');
 
-    // 构建代理请求
-    const proxyRequest = new Request(targetUrl, {
+    // 添加防反爬虫头
+    proxyHeaders.set('Sec-Fetch-Dest', 'empty');
+    proxyHeaders.set('Sec-Fetch-Mode', 'cors');
+    proxyHeaders.set('Sec-Fetch-Site', 'cross-site');
+
+    // 构建代理请求配置
+    const fetchOptions = {
       method: request.method,
       headers: proxyHeaders,
-      body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : null,
-    });
+      // 设置超时时间
+      signal: AbortSignal.timeout(30000), // 30秒超时
+    };
+
+    // 如果不是 GET/HEAD 请求，添加请求体
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      fetchOptions.body = request.body;
+    }
 
     // 发送代理请求
-    const response = await fetch(proxyRequest);
-    
-    // 返回带 CORS 的响应
-    return corsResponse(response);
+    const response = await fetch(targetUrl, fetchOptions);
+
+    // 创建新的响应头，移除一些可能导致问题的头
+    const responseHeaders = new Headers();
+    for (const [key, value] of response.headers.entries()) {
+      const lowerKey = key.toLowerCase();
+      if (!['content-encoding', 'content-length', 'transfer-encoding'].includes(lowerKey)) {
+        responseHeaders.set(key, value);
+      }
+    }
+
+    // 添加 CORS 头
+    responseHeaders.set('Access-Control-Allow-Origin', '*');
+    responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+
+    // 添加缓存控制
+    if (request.method === 'GET') {
+      responseHeaders.set('Cache-Control', 'public, max-age=300'); // 5分钟缓存
+    }
+
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: responseHeaders,
+    });
 
   } catch (error) {
     console.error('Proxy request failed:', error);
-    
-    return corsResponse(JSON.stringify({
+
+    // 详细的错误信息
+    const errorResponse = {
       error: 'Proxy request failed',
       message: error.message || 'Unknown error',
       targetUrl: targetUrl,
-      timestamp: new Date().toISOString()
-    }), '*');
+      timestamp: new Date().toISOString(),
+      userAgent: request.headers.get('User-Agent'),
+      cfRay: request.headers.get('CF-Ray'),
+      country: request.cf?.country || 'unknown'
+    };
+
+    return corsResponse(JSON.stringify(errorResponse, null, 2), '*');
   }
 }
 
