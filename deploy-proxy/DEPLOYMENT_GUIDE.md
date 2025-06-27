@@ -16,6 +16,7 @@
 |--------|------|------|----------|
 | ⭐⭐⭐⭐⭐ | **Cloudflare Workers** | 全球边缘计算，免费额度高，性能极佳 | **首选方案**，适合所有用户 |
 | ⭐⭐⭐⭐ | Deno Deploy | 现代 TypeScript 运行时 | TypeScript 优先项目 |
+| ⭐⭐⭐⭐ | Vercel | 与 GitHub 完美集成，开发体验好 | Next.js 开发者，快速部署 |
 | ⭐⭐⭐ | 本地部署 | 完全控制，无限制 | 企业内网，自建服务器 |
 
 > 💡 **强烈推荐使用 Cloudflare Workers**：部署最简单，性能最好，免费额度最高！
@@ -67,7 +68,7 @@ https://morphotv-proxy.your-subdomain.workers.dev/?url=
 
 **立即测试**：
 ```bash
-curl "https://morphotv-proxy.your-subdomain.workers.dev/?url=https://httpbin.org/get"
+curl "https://morphotv-proxy.your-subdomain.workers.dev/proxy/https://httpbin.org/get"
 ```
 
 ## ⚡ 方案二：Deno Deploy 部署
@@ -93,8 +94,69 @@ curl -fsSL https://deno.land/x/install/install.sh | sh
 ### 步骤 3：获取代理地址
 
 部署成功后，您将获得类似以下的地址：
+```text
+https://your-project.deno.dev/proxy
 ```
-https://your-project.deno.dev/?url=
+
+## 🚀 方案三：Vercel 部署
+
+### 步骤 1：准备项目
+
+```bash
+# 克隆项目
+git clone https://github.com/your-username/MorphoTV.git
+cd MorphoTV/deploy-proxy/vercel-deploy
+
+# 安装依赖
+npm install
+```
+
+### 步骤 2：本地测试
+
+```bash
+# 启动开发服务器
+npm run dev
+
+# 访问 http://localhost:3000 查看状态页面
+# 测试代理功能：http://localhost:3000/api/proxy?url=https://httpbin.org/get
+```
+
+### 步骤 3：部署到 Vercel
+
+#### 方法 A：GitHub 自动部署（推荐）
+
+1. **推送到 GitHub**
+   ```bash
+   git add .
+   git commit -m "Add MorphoTV proxy server"
+   git push origin main
+   ```
+
+2. **连接 Vercel**
+   - 访问 [Vercel Dashboard](https://vercel.com/dashboard)
+   - 点击 "New Project"
+   - 选择 GitHub 仓库
+   - 选择 `deploy-proxy/vercel-deploy` 目录
+   - 点击 "Deploy"
+
+#### 方法 B：Vercel CLI 部署
+
+```bash
+# 安装 Vercel CLI
+npm i -g vercel
+
+# 登录 Vercel
+vercel login
+
+# 部署项目
+vercel --prod
+```
+
+### 步骤 4：获取代理地址
+
+部署成功后，您将获得类似以下的地址：
+```text
+https://your-app.vercel.app/api/proxy
 ```
 
 ## 🏠 方案三：本地部署
@@ -135,23 +197,30 @@ npm start
    **🌟 Cloudflare Workers（推荐）**：
    ```json
    {
-     "PROXY_BASE_URL": "https://your-worker.workers.dev/?url="
+     "PROXY_BASE_URL": "https://your-worker.workers.dev/proxy"
    }
    ```
    > 💡 **示例**：如果您的 Worker 名称是 `morphotv-proxy`，则配置为：
-   > `"PROXY_BASE_URL": "https://morphotv-proxy.your-subdomain.workers.dev/?url="`
+   > `"PROXY_BASE_URL": "https://morphotv-proxy.your-subdomain.workers.dev/proxy"`
 
    **Deno Deploy**：
    ```json
    {
-     "PROXY_BASE_URL": "https://your-project.deno.dev/?url="
+     "PROXY_BASE_URL": "https://your-project.deno.dev/proxy"
+   }
+   ```
+
+   **Vercel**：
+   ```json
+   {
+     "PROXY_BASE_URL": "https://your-app.vercel.app/api/proxy"
    }
    ```
 
    **本地部署**：
    ```json
    {
-     "PROXY_BASE_URL": "http://localhost:3000/?url="
+     "PROXY_BASE_URL": "http://localhost:3000/proxy"
    }
    ```
 
@@ -227,7 +296,7 @@ cd server
 npm start
 
 # 测试代理功能
-curl "http://localhost:3000/?url=https://httpbin.org/get"
+curl "http://localhost:3000/proxy/https://httpbin.org/get"
 ```
 
 ## 📊 性能优化

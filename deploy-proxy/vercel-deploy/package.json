@@ -1,0 +1,14 @@
+{
+  "name": "morphotv-proxy",
+  "version": "1.0.0",
+  "description": "MorphoTV 代理服务器 - Vercel版",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=18"
+  }
+}
