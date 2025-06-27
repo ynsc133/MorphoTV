@@ -1,7 +1,5 @@
 {
   "version": 2,
-  "name": "morphotv-proxy-vercel",
-  "description": "MorphoTV Proxy Server - Optimized for Vercel Edge Functions",
   "functions": {
     "app/api/proxy/route.ts": {
       "runtime": "edge"
