@@ -139,7 +139,7 @@ deploy-proxy/
 
 **其他平台配置示例**：
 - **Deno Deploy**: `"PROXY_BASE_URL": "https://your-project.deno.dev/proxy"`
-- **Vercel**: `"PROXY_BASE_URL": "https://your-app.vercel.app/api/proxy"`
+- **Vercel**: `"PROXY_BASE_URL": "https://your-app.vercel.app/api/proxy?url="`
 - **本地部署**: `"PROXY_BASE_URL": "http://localhost:3000/proxy"`
 
 ## 🔧 功能特性
