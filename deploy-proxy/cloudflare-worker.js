@@ -225,7 +225,11 @@ export default {
         
         <h2>使用方法</h2>
         <p>在 MorphoTV 初始化界面输入以下代理地址：</p>
-        <div class="endpoint">${url.origin}/proxy/</div>
+        <div class="endpoint">
+        {
+          "PROXY_BASE_URL": "${url.origin}/proxy/"
+        }
+        </div>
         
         <h2>功能特性</h2>
         <div class="feature">全球 CDN 加速</div>
