@@ -34,6 +34,7 @@
             white-space: pre-wrap;
             font-size: 14px;
             overflow-x: auto;
+            position: relative;
         }
         .button {
             background: #4CAF50;
@@ -71,6 +72,17 @@
             text-align: center;
         }
         .emoji { font-size: 2em; margin-bottom: 10px; }
+        .copy-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        .copy-buttons .button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -84,9 +96,12 @@
         <h2>🔧 配置方法</h2>
         <p>在 MorphoTV 应用中输入以下配置：</p>
         
-        <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; flex-wrap: wrap;">
             <strong>📱 基础配置</strong>
-            <button class="button" onclick="copyConfig()">📋 复制配置</button>
+            <div class="copy-buttons">
+                <button class="button" onclick="copyConfig()">📋 智能复制</button>
+                <button class="button" onclick="selectConfig()" style="background: #2196F3;">✂️ 手动选择</button>
+            </div>
         </div>
         <div class="config-box" id="config">{
   "PROXY_BASE_URL": "https://your-app.vercel.app/api/proxy?url="
@@ -136,30 +151,155 @@
 }`;
         });
 
-        // 复制配置
+        // 智能复制配置
         async function copyConfig() {
             const config = `{
   "PROXY_BASE_URL": "${window.location.origin}/api/proxy?url="
 }`;
             
+            const button = event.target;
+            const originalText = button.textContent;
+            
             try {
-                await navigator.clipboard.writeText(config);
+                // 方法1: 现代浏览器的剪贴板 API
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(config);
+                    showSuccess(button, originalText);
+                    return;
+                }
                 
-                const button = event.target;
-                const originalText = button.textContent;
-                button.textContent = '✅ 复制成功';
-                button.style.background = '#4CAF50';
+                // 方法2: 传统的 execCommand 方法（兼容性更好）
+                const textArea = document.createElement('textarea');
+                textArea.value = config;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
                 
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.style.background = '';
-                }, 2000);
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                if (successful) {
+                    showSuccess(button, originalText);
+                } else {
+                    throw new Error('execCommand failed');
+                }
+                
             } catch (error) {
-                alert('复制失败，请手动复制配置');
+                console.error('复制失败:', error);
+                showManualCopy(config, button, originalText);
             }
         }
 
-        // 测试代理
+        // 手动选择配置
+        function selectConfig() {
+            const configElement = document.getElementById('config');
+            const range = document.createRange();
+            range.selectNodeContents(configElement);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            // 提示用户
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '✅ 已选中，请Ctrl+C复制';
+            button.style.background = '#4CAF50';
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = '';
+            }, 3000);
+        }
+
+        // 显示成功状态
+        function showSuccess(button, originalText) {
+            button.textContent = '✅ 复制成功';
+            button.style.background = '#4CAF50';
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = '';
+            }, 2000);
+        }
+
+        // 显示手动复制对话框
+        function showManualCopy(config, button, originalText) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+            `;
+            
+            const content = document.createElement('div');
+            content.style.cssText = `
+                background: white;
+                color: black;
+                padding: 30px;
+                border-radius: 10px;
+                max-width: 500px;
+                width: 90%;
+            `;
+            
+            content.innerHTML = `
+                <h3 style="margin-bottom: 15px; color: #333;">📋 请手动复制配置</h3>
+                <p style="margin-bottom: 15px; color: #666;">自动复制失败，请手动选择并复制以下配置：</p>
+                <textarea readonly style="
+                    width: 100%;
+                    height: 120px;
+                    padding: 10px;
+                    border: 2px solid #4CAF50;
+                    border-radius: 5px;
+                    font-family: monospace;
+                    font-size: 14px;
+                    resize: none;
+                ">${config}</textarea>
+                <div style="margin-top: 15px; text-align: center;">
+                    <button onclick="this.parentElement.parentElement.parentElement.remove()" style="
+                        background: #4CAF50;
+                        color: white;
+                        border: none;
+                        padding: 10px 20px;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 16px;
+                    ">关闭</button>
+                </div>
+            `;
+            
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+            
+            const textarea = content.querySelector('textarea');
+            textarea.focus();
+            textarea.select();
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+            
+            button.textContent = '📋 已打开手动复制';
+            button.style.background = '#ff9800';
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = '';
+            }, 3000);
+        }
+
+        // 测试代理功能
         async function testProxy() {
             const resultDiv = document.getElementById('result');
             resultDiv.style.display = 'block';
@@ -177,8 +317,8 @@
                     const data = await response.json();
                     resultDiv.textContent = `✅ 代理测试成功！
 ⚡ 响应时间: ${responseTime}ms
-📊 缓存状态: ${response.headers.get('x-cache-status')}
-🌐 服务器: ${response.headers.get('x-proxy-server')}
+📊 缓存状态: ${response.headers.get('x-cache-status') || '未知'}
+🌐 服务器: ${response.headers.get('x-proxy-server') || 'Vercel'}
 
 返回数据:
 ${JSON.stringify(data, null, 2)}`;
