@@ -1,123 +1,127 @@
 # MorphoTV 代理服务器部署指南
 
-> 🚀 详细的部署步骤和配置说明
+> 🚀 多平台部署方案和配置说明
 
 ## 📋 部署前准备
 
 ### 1. 环境要求
 
-- Node.js >= 18.0.0
-- npm 或 yarn 包管理器
+- Node.js >= 18.0.0（用于本地开发和测试）
 - Git（用于版本控制）
-- Vercel 账户（免费）
+- 选择一个云平台账户（免费）
 
-### 2. 选择部署方案
+### 2. 部署方案选择
 
-| 需求 | 推荐方案 | 理由 |
-|------|----------|------|
-| 快速上线 | Pages Router 版本 | 更快的构建和部署 |
-| 长期维护 | App Router 版本 | 更好的扩展性和类型安全 |
-| 性能优先 | Pages Router 版本 | 更小的体积和更快的启动 |
-| 现代化开发 | App Router 版本 | 最新的 Next.js 特性 |
+| 推荐度 | 平台 | 特点 | 适用场景 |
+|--------|------|------|----------|
+| ⭐⭐⭐⭐⭐ | **Cloudflare Workers** | 全球边缘计算，免费额度高，性能极佳 | **首选方案**，适合所有用户 |
+| ⭐⭐⭐⭐ | Deno Deploy | 现代 TypeScript 运行时 | TypeScript 优先项目 |
+| ⭐⭐⭐ | 本地部署 | 完全控制，无限制 | 企业内网，自建服务器 |
 
-## 🚀 方案一：App Router 版本部署
+> 💡 **强烈推荐使用 Cloudflare Workers**：部署最简单，性能最好，免费额度最高！
 
-### 步骤 1：准备项目
+## 🚀 方案一：Cloudflare Workers 部署（⭐ 强烈推荐）
+
+> 🎯 **为什么选择 Cloudflare Workers？**
+> - ✅ **零配置部署**：3 分钟即可完成
+> - ✅ **全球边缘网络**：200+ 个数据中心
+> - ✅ **超高免费额度**：每天 100,000 次请求
+> - ✅ **毫秒级响应**：冷启动时间 <1ms
+> - ✅ **自动 HTTPS**：无需配置 SSL 证书
+
+### 步骤 1：准备代码
 
 ```bash
 # 克隆项目
 git clone https://github.com/your-username/MorphoTV.git
-cd MorphoTV/deploy-proxy/morphotv-proxy-vercel
+cd MorphoTV/deploy-proxy
 
-# 安装依赖
-npm install
+# 查看 Cloudflare Workers 代码
+cat cloudflare-worker.js
 ```
 
-### 步骤 2：本地测试
+### 步骤 2：快速部署（仅需 3 分钟）
 
-```bash
-# 启动开发服务器
-npm run dev
+1. **访问 Cloudflare Workers**
+   - 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)
+   - 进入 "Workers & Pages" 部分
+   - 点击 "Create application"
 
-# 访问 http://localhost:3000 查看状态页面
-# 测试代理功能：http://localhost:3000/api/proxy?url=https://httpbin.org/get
-```
-
-### 步骤 3：配置环境变量（可选）
-
-```bash
-# 复制环境变量模板
-cp .env.example .env.local
-
-# 编辑 .env.local 文件
-# ALLOWED_DOMAINS=api.example.com,github.com
-```
-
-### 步骤 4：部署到 Vercel
-
-#### 方法 A：GitHub 自动部署（推荐）
-
-1. **推送到 GitHub**
-   ```bash
-   git add .
-   git commit -m "Add MorphoTV proxy server"
-   git push origin main
-   ```
-
-2. **连接 Vercel**
-   - 访问 [Vercel Dashboard](https://vercel.com/dashboard)
-   - 点击 "New Project"
-   - 选择 GitHub 仓库
-   - 选择 `deploy-proxy/morphotv-proxy-vercel` 目录
+2. **创建 Worker**
+   - 选择 "Create Worker"
+   - 给 Worker 起一个名字（如：morphotv-proxy）
    - 点击 "Deploy"
 
-#### 方法 B：Vercel CLI 部署
+3. **上传代码**
+   - 在 Worker 编辑器中，删除默认代码
+   - 复制 `cloudflare-worker.js` 的内容并粘贴
+   - 点击 "Save and Deploy"
 
+### 步骤 3：获取代理地址
+
+🎉 部署成功！您将获得类似以下的地址：
+
+```text
+https://morphotv-proxy.your-subdomain.workers.dev/?url=
+```
+
+**立即测试**：
 ```bash
-# 安装 Vercel CLI
-npm i -g vercel
-
-# 登录 Vercel
-vercel login
-
-# 部署项目
-vercel --prod
+curl "https://morphotv-proxy.your-subdomain.workers.dev/?url=https://httpbin.org/get"
 ```
 
-### 步骤 5：获取代理地址
-
-部署成功后，您将获得类似以下的地址：
-```
-https://your-app-name.vercel.app/api/proxy?url=
-```
-
-## ⚡ 方案二：Pages Router 版本部署
+## ⚡ 方案二：Deno Deploy 部署
 
 ### 步骤 1：准备项目
 
 ```bash
-# 进入 Pages Router 版本目录
-cd MorphoTV/deploy-proxy/morphotv-proxy-vercel-pages
+# 确保已安装 Deno
+curl -fsSL https://deno.land/x/install/install.sh | sh
+```
+
+### 步骤 2：部署到 Deno Deploy
+
+1. **访问 Deno Deploy**
+   - 登录 [Deno Deploy](https://dash.deno.com/)
+   - 点击 "New Project"
+
+2. **连接 GitHub**
+   - 选择您的 GitHub 仓库
+   - 设置入口文件为 `deploy-proxy/deno-deploy-proxy.ts`
+   - 点击 "Link"
+
+### 步骤 3：获取代理地址
+
+部署成功后，您将获得类似以下的地址：
+```
+https://your-project.deno.dev/?url=
+```
+
+## 🏠 方案三：本地部署
+
+### 步骤 1：准备环境
+
+```bash
+# 克隆项目
+git clone https://github.com/your-username/MorphoTV.git
+cd MorphoTV/server
 
 # 安装依赖
 npm install
 ```
 
-### 步骤 2：本地测试
+### 步骤 2：启动服务器
 
 ```bash
-# 启动开发服务器
-npm run dev
+# 启动代理服务器
+npm start
 
-# 访问 http://localhost:3000 查看状态页面
+# 服务器将在 http://localhost:3000 启动
 ```
 
-### 步骤 3：部署到 Vercel
+### 步骤 3：配置防火墙（可选）
 
-```bash
-# 使用 Vercel CLI 部署
-vercel --prod
-```
+如果需要外网访问，请配置防火墙开放端口 3000。
 
 ## 🔧 在 MorphoTV 中配置
 
@@ -126,12 +130,31 @@ vercel --prod
 1. **打开 MorphoTV 应用**
 2. **进入初始化界面**
 3. **选择 "JSON数据" 标签页**
-4. **输入配置**：
+4. **根据部署方案输入对应配置**：
+
+   **🌟 Cloudflare Workers（推荐）**：
    ```json
    {
-     "PROXY_BASE_URL": "https://your-app.vercel.app/api/proxy?url="
+     "PROXY_BASE_URL": "https://your-worker.workers.dev/?url="
    }
    ```
+   > 💡 **示例**：如果您的 Worker 名称是 `morphotv-proxy`，则配置为：
+   > `"PROXY_BASE_URL": "https://morphotv-proxy.your-subdomain.workers.dev/?url="`
+
+   **Deno Deploy**：
+   ```json
+   {
+     "PROXY_BASE_URL": "https://your-project.deno.dev/?url="
+   }
+   ```
+
+   **本地部署**：
+   ```json
+   {
+     "PROXY_BASE_URL": "http://localhost:3000/?url="
+   }
+   ```
+
 5. **点击 "导入JSON数据"**
 6. **等待系统重新加载**
 
@@ -146,31 +169,15 @@ vercel --prod
 
 ### 常见问题
 
-#### 1. 部署失败
-
-**问题**：Vercel 部署时出错
-**解决方案**：
-```bash
-# 检查 Node.js 版本
-node --version  # 应该 >= 18.0.0
-
-# 清理缓存并重新安装
-rm -rf node_modules package-lock.json
-npm install
-
-# 重新部署
-vercel --prod
-```
-
-#### 2. 代理不工作
+#### 1. 代理不工作
 
 **问题**：代理请求失败
 **解决方案**：
 1. 检查代理地址格式是否正确
 2. 确认目标 URL 可以正常访问
-3. 查看 Vercel 函数日志
+3. 查看平台的函数日志
 
-#### 3. CORS 错误
+#### 2. CORS 错误
 
 **问题**：浏览器显示 CORS 错误
 **解决方案**：
@@ -178,71 +185,110 @@ vercel --prod
 2. 检查请求头设置
 3. 验证目标 API 支持跨域请求
 
-#### 4. 域名限制
+#### 3. 域名限制
 
 **问题**：某些域名无法访问
 **解决方案**：
-1. 检查 `ALLOWED_DOMAINS` 环境变量
-2. 确认目标域名在白名单中
-3. 移除域名限制（如果不需要）
+1. 检查代理代码中的域名白名单设置
+2. 确认目标域名在允许列表中
+3. 根据需要修改域名限制
+
+#### 4. 本地部署端口冲突
+
+**问题**：端口 3000 被占用
+**解决方案**：
+```bash
+# 查看端口占用
+netstat -ano | findstr :3000
+
+# 修改端口（在 server/package.json 中）
+"start": "node proxy-server.js --port=3001"
+```
 
 ### 调试方法
 
-#### 查看 Vercel 日志
+#### Cloudflare Workers 调试
 
-1. 访问 [Vercel Dashboard](https://vercel.com/dashboard)
+1. 访问 [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. 选择您的 Worker
+3. 点击 "Logs" 标签页查看实时日志
+
+#### Deno Deploy 调试
+
+1. 访问 [Deno Deploy Dashboard](https://dash.deno.com/)
 2. 选择您的项目
-3. 点击 "Functions" 标签页
-4. 查看函数执行日志
+3. 查看 "Logs" 部分
 
 #### 本地调试
 
 ```bash
-# 启动开发服务器
-npm run dev
+# 启动本地服务器
+cd server
+npm start
 
-# 查看控制台输出
 # 测试代理功能
-curl "http://localhost:3000/api/proxy?url=https://httpbin.org/get"
+curl "http://localhost:3000/?url=https://httpbin.org/get"
 ```
 
 ## 📊 性能优化
 
-### 1. 环境变量优化
+### 🌟 Cloudflare Workers 优化（首选）
 
-```bash
-# 在 Vercel 项目设置中添加
-NODE_ENV=production
-NEXT_TELEMETRY_DISABLED=1
+**为什么性能最佳？**
+- 🚀 **全球边缘网络**：200+ 个数据中心，就近响应
+- ⚡ **毫秒级冷启动**：<1ms 启动时间，几乎无延迟
+- 🔄 **智能缓存**：自动缓存静态资源，减少重复请求
+- 🌐 **自动 HTTPS**：内置 SSL/TLS，支持 HTTP/2 和 HTTP/3
+- 📈 **免费额度高**：每天 100,000 次请求，足够个人使用
+
+**性能数据对比**：
+```
+响应时间：    Cloudflare Workers < 50ms
+冷启动：      < 1ms
+全球覆盖：    200+ 个城市
+免费额度：    100,000 次/天
 ```
 
-### 2. 域名白名单
+### Deno Deploy 优化
+
+- 现代 V8 引擎，性能优异
+- 原生 TypeScript 支持
+- 全球分布式部署
+
+### 本地部署优化
 
 ```bash
-# 限制可访问的域名，提高安全性
-ALLOWED_DOMAINS=api.github.com,httpbin.org
+# 使用 PM2 进程管理器
+npm install -g pm2
+pm2 start server/proxy-server.js --name morphotv-proxy
+
+# 设置开机自启
+pm2 startup
+pm2 save
 ```
-
-### 3. 缓存配置
-
-在 `vercel.json` 中已经配置了适当的缓存策略，无需额外配置。
 
 ## 🔒 安全配置
 
 ### 1. 域名白名单
 
-```bash
-# 设置允许的域名
-ALLOWED_DOMAINS=trusted-api.com,another-api.com
+在代理代码中配置允许的域名：
+```javascript
+const ALLOWED_DOMAINS = [
+  'api.github.com',
+  'httpbin.org',
+  'your-trusted-api.com'
+];
 ```
 
 ### 2. HTTPS 强制
 
-Vercel 自动提供 HTTPS，无需额外配置。
+- Cloudflare Workers：自动 HTTPS
+- Deno Deploy：自动 HTTPS
+- 本地部署：需要配置 SSL 证书
 
 ### 3. 安全头部
 
-项目已经配置了安全头部：
+所有方案都已配置安全头部：
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `X-XSS-Protection: 1; mode=block`
@@ -251,54 +297,59 @@ Vercel 自动提供 HTTPS，无需额外配置。
 
 ### 1. 性能监控
 
-- 使用 Vercel Analytics 监控性能
-- 查看函数执行时间和错误率
-- 监控带宽使用情况
+**Cloudflare Workers**：
+- 使用 Cloudflare Analytics
+- 监控请求量和响应时间
+- 查看错误率统计
 
-### 2. 日志监控
+**Deno Deploy**：
+- 内置性能监控
+- 实时日志查看
+- 资源使用统计
 
-- 定期查看 Vercel 函数日志
-- 监控错误和异常情况
-- 设置告警通知
-
-### 3. 定期更新
-
+**本地部署**：
 ```bash
-# 更新依赖
-npm update
+# 使用 PM2 监控
+pm2 monit
 
-# 重新部署
-vercel --prod
+# 查看日志
+pm2 logs morphotv-proxy
 ```
+
+### 2. 定期维护
+
+- 定期检查代理服务状态
+- 监控目标 API 的可用性
+- 及时更新代理代码
 
 ## 🎯 最佳实践
 
-### 1. 版本控制
+### 1. 选择合适的部署方案
 
-- 使用 Git 管理代码版本
-- 为每次部署打标签
-- 保持代码库整洁
+- **高并发需求**：选择 Cloudflare Workers
+- **TypeScript 项目**：选择 Deno Deploy
+- **企业内网**：选择本地部署
 
-### 2. 环境管理
+### 2. 安全考虑
 
-- 区分开发和生产环境
-- 使用环境变量管理配置
-- 不要在代码中硬编码敏感信息
+- 设置合理的域名白名单
+- 定期检查访问日志
+- 避免代理敏感 API
 
-### 3. 测试策略
+### 3. 性能优化
 
-- 部署前进行本地测试
-- 使用测试 URL 验证功能
-- 监控生产环境性能
+- 合理设置缓存策略
+- 监控响应时间
+- 优化代理逻辑
 
 ## 📞 技术支持
 
 如果遇到问题，可以：
 
 1. 查看项目 README 文档
-2. 检查 Vercel 官方文档
+2. 检查对应平台的官方文档
 3. 在 GitHub 提交 Issue
-4. 参考 Next.js 官方文档
+4. 参考社区讨论
 
 ---
 

@@ -1,222 +1,192 @@
 # MorphoTV 代理服务器部署方案
 
-> 🎬 为 MorphoTV 提供的两种优化 Vercel 代理服务器实现方案
+> 🎬 为 MorphoTV 提供的多平台代理服务器部署方案
 
-## � 项目结构
+## 📁 项目结构
 
 ```
 deploy-proxy/
-├── morphotv-proxy-vercel/          # 方案一：App Router 现代化版本
-│   ├── app/api/proxy/route.ts      # 现代化 API 路由
-│   ├── public/index.html           # 静态状态页面
-│   ├── vercel.json                 # Vercel 配置
-│   └── README.md                   # 详细文档
-├── morphotv-proxy-vercel-pages/    # 方案二：Pages Router 轻量级版本
-│   ├── pages/api/proxy.js          # 传统 API 路由
-│   ├── public/index.html           # 静态状态页面
-│   ├── vercel.json                 # 优化配置
-│   └── README.md                   # 详细文档
+├── cloudflare-worker.js           # Cloudflare Workers 部署方案
+├── deno-deploy-proxy.ts           # Deno Deploy 部署方案
+├── deno-proxy-original.ts         # 原始 Deno 代理实现
+├── DEPLOYMENT_GUIDE.md            # 详细部署指南
 └── README.md                       # 本文档
 ```
 
-## � 方案对比
+## 🔄 方案对比
 
-### 方案一：App Router 现代化版本
+### 🌟 方案一：Cloudflare Workers（强烈推荐）
 
-**适用场景：**
-- 需要现代化架构的项目
-- 对 TypeScript 支持要求高
-- 需要未来扩展性的场景
-- 团队熟悉 App Router 的项目
-
-**技术特点：**
-- ✅ Next.js 15.1.0 + App Router
-- ✅ TypeScript 支持
-- ✅ 现代化的文件结构
-- ✅ 更好的开发体验
-- ✅ 完整的类型安全
-
-### 方案二：Pages Router 轻量级版本
-
-**适用场景：**
-- 对性能要求极高的场景
-- 资源受限的环境
-- 纯 API 代理需求
-- 追求最小化部署的项目
+**为什么是首选？**
+- 🚀 **部署最简单**：3 分钟即可完成部署
+- ⚡ **性能最强**：全球 200+ 边缘节点，<50ms 响应
+- 💰 **免费额度最高**：每天 100,000 次请求
+- 🔒 **安全性最好**：自动 DDoS 防护和 SSL
+- 🌍 **全球覆盖**：适合所有地区用户
 
 **技术特点：**
-- ✅ 超轻量级架构
-- ✅ 更快的冷启动时间
-- ✅ 最小化依赖
-- ✅ 更小的构建体积
-- ✅ 经典稳定的 API 模式
+- ✅ 全球边缘网络部署
+- ✅ 每天 100,000 次免费请求
+- ✅ 毫秒级冷启动（<1ms）
+- ✅ 自动 HTTPS 和 HTTP/2
+- ✅ 无服务器架构
+- ✅ 零配置部署
+
+### 方案二：Deno Deploy
+
+**适用场景：**
+- TypeScript 优先的项目
+- 现代化开发体验需求
+- 需要原生 ES 模块支持
+- 追求开发效率的场景
+
+**技术特点：**
+- ✅ 原生 TypeScript 支持
+- ✅ 现代 V8 引擎
+- ✅ 全球分布式部署
+- ✅ 零配置部署
+- ✅ 内置性能监控
+
+### 方案三：本地部署
+
+**适用场景：**
+- 企业内网环境
+- 需要完全控制的场景
+- 自建服务器部署
+- 开发测试环境
+
+**技术特点：**
+- ✅ 完全自主控制
+- ✅ 无外部依赖
+- ✅ 可自定义配置
+- ✅ 适合内网部署
+- ✅ 支持自定义端口
 
 ## 📊 详细对比
 
-| 特性 | App Router 版本 | Pages Router 版本 |
-|------|----------------|------------------|
-| **架构** | 现代化 App Router | 传统 Pages Router |
-| **语言** | TypeScript | JavaScript |
-| **构建体积** | ~2-3MB | ~1MB |
-| **冷启动时间** | ~150ms | ~100ms |
-| **内存使用** | ~80MB | ~50MB |
-| **依赖数量** | 4个核心依赖 | 2个核心依赖 |
-| **配置复杂度** | 中等 | 简单 |
-| **扩展性** | 高 | 中等 |
-| **维护性** | 高 | 高 |
-| **学习成本** | 中等 | 低 |
+| 特性 | 🌟 Cloudflare Workers | Deno Deploy | 本地部署 |
+|------|----------------------|-------------|----------|
+| **推荐度** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **部署难度** | 🟢 极简（3分钟） | 🟢 简单 | 🟡 中等 |
+| **性能** | 🟢 极高（<50ms） | 🟢 高 | 🟡 取决于硬件 |
+| **免费额度** | 🟢 100K 请求/天 | 🟡 100K 请求/月 | 🟢 无限制 |
+| **全球分布** | 🟢 200+ 节点 | 🟢 全球分布 | 🔴 单点 |
+| **冷启动** | 🟢 <1ms | 🟡 <10ms | 🟢 无冷启动 |
+| **TypeScript** | 🟡 支持 | 🟢 原生支持 | 🟡 需配置 |
+| **监控** | 🟢 内置完善 | 🟢 内置 | 🔴 需自建 |
+| **自定义域名** | 🟢 免费 | 🟢 支持 | 🟢 支持 |
+| **维护成本** | 🟢 零维护 | 🟢 低 | 🔴 高 |
 
-## 🚀 快速部署
+> 💡 **结论**：Cloudflare Workers 在几乎所有方面都表现最佳，是绝大多数用户的最佳选择！
 
-### 方案一部署（App Router）
+## 🚀 快速开始
 
-```bash
-# 进入 App Router 版本目录
-cd morphotv-proxy-vercel
+### 🌟 推荐路径：Cloudflare Workers（3 分钟部署）
 
-# 安装依赖
-npm install
+**为什么选择 Cloudflare Workers？**
+- ✅ **最简单**：无需安装任何软件，浏览器即可完成
+- ✅ **最快速**：3 分钟即可完成部署
+- ✅ **最稳定**：全球 200+ 节点，99.9% 可用性
+- ✅ **最经济**：免费额度足够个人使用
 
-# 部署到 Vercel
-npx vercel --prod
+**快速部署步骤**：
+1. 访问 [Cloudflare Workers](https://dash.cloudflare.com/)
+2. 创建新 Worker
+3. 复制粘贴 `cloudflare-worker.js` 代码
+4. 点击部署 - 完成！
+
+### 其他方案
+
+- **TypeScript 爱好者**：Deno Deploy（原生 TS 支持）
+- **企业内网用户**：本地部署（完全控制）
+
+### 📖 详细指南
+
+请参考 [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) 获取详细的部署步骤。
+
+### 🔧 配置 MorphoTV
+
+部署成功后，在 MorphoTV 中配置代理地址：
+
+**Cloudflare Workers 配置示例**：
+```json
+{
+  "PROXY_BASE_URL": "https://your-worker.workers.dev/?url="
+}
 ```
 
-### 方案二部署（Pages Router）
+## 🔧 功能特性
 
-```bash
-# 进入 Pages Router 版本目录
-cd morphotv-proxy-vercel-pages
+### 核心功能
 
-# 安装依赖
-npm install
+- ✅ **CORS 跨域支持**：解决浏览器跨域限制
+- ✅ **请求转发**：支持 GET、POST、PUT、DELETE 等方法
+- ✅ **头部转发**：保持原始请求头信息
+- ✅ **错误处理**：友好的错误信息返回
+- ✅ **安全防护**：基础的安全头部设置
 
-# 部署到 Vercel
-npx vercel --prod
-```
+### 高级功能
 
-## 🔧 共同特性
+- ✅ **域名白名单**：可配置允许访问的域名
+- ✅ **请求日志**：记录代理请求信息
+- ✅ **性能优化**：缓存策略和压缩支持
+- ✅ **监控支持**：内置性能监控
+- ✅ **自动重试**：网络错误自动重试机制
 
-两个版本都包含以下特性：
+## 🔒 安全考虑
 
-### 🔒 安全特性
-- SSRF 攻击防护
-- 内网地址访问限制
-- 域名白名单支持
-- URL 格式验证
+### 基础安全
 
-### 🌐 网络特性
-- 完整的 CORS 支持
-- 智能请求头转发
-- 支持所有 HTTP 方法
-- 流式响应处理
+- 设置合理的域名白名单
+- 配置安全响应头
+- 限制请求大小和频率
 
-### ⚡ 性能特性
-- Vercel Edge Functions
-- 全球边缘网络分发
-- 零冷启动延迟
-- 优化的错误处理
+### 高级安全
 
-### 🛠️ 开发特性
-- 环境变量支持
-- 详细的错误日志
-- 完整的文档
-- 易于维护的代码结构
+- 实施 API 密钥验证（可选）
+- 配置 IP 白名单（本地部署）
+- 启用请求日志监控
 
-## 📖 使用方法
+## 📈 性能优化
 
-两个版本的使用方法完全相同：
+### Cloudflare Workers
 
-### API 端点格式
-```
-https://your-app.vercel.app/api/proxy?url={目标URL}
-```
+- 利用全球 CDN 网络
+- 自动缓存静态资源
+- 智能路由优化
 
-### 在 MorphoTV 中配置
-```
-https://your-app.vercel.app/api/proxy?url=
-```
+### Deno Deploy
 
-### 测试代理功能
-```bash
-curl "https://your-app.vercel.app/api/proxy?url=https://httpbin.org/get"
-```
+- V8 引擎优化
+- 原生 ES 模块支持
+- 自动代码分割
 
-## 🎯 选择建议
+### 本地部署
 
-### 推荐 App Router 版本的情况：
-- 🔮 **未来规划**：计划添加更多功能
-- 👥 **团队协作**：团队熟悉现代化开发
-- 🛡️ **类型安全**：需要 TypeScript 支持
-- 🔧 **可维护性**：长期维护的项目
+- 使用 PM2 进程管理
+- 配置负载均衡
+- 启用 Gzip 压缩
 
-### 推荐 Pages Router 版本的情况：
-- ⚡ **性能优先**：对启动速度要求极高
-- 💰 **资源限制**：需要最小化资源使用
-- 🎯 **简单需求**：纯代理功能，无扩展需求
-- 🚀 **快速部署**：需要快速上线的项目
+## 🛠️ 故障排除
 
-## 🔍 性能测试
+### 常见问题
 
-### 冷启动时间对比
-```
-App Router 版本：  ~150ms
-Pages Router 版本： ~100ms
-```
+1. **代理不工作**：检查代理地址格式和目标 URL
+2. **CORS 错误**：确认代理服务器正常运行
+3. **性能问题**：检查网络连接和服务器负载
 
-### 构建体积对比
-```
-App Router 版本：  ~2.5MB
-Pages Router 版本： ~1.2MB
-```
+### 调试方法
 
-### 内存使用对比
-```
-App Router 版本：  ~80MB
-Pages Router 版本： ~50MB
-```
+- 查看平台日志
+- 使用浏览器开发者工具
+- 测试代理端点
 
-## 🛠️ 环境变量配置
+## 📞 技术支持
 
-两个版本都支持相同的环境变量：
-
-```bash
-# 域名白名单（可选）
-ALLOWED_DOMAINS=api.example.com,github.com
-
-# 运行环境
-NODE_ENV=production
-
-# 禁用遥测
-NEXT_TELEMETRY_DISABLED=1
-```
-
-## 📝 更新日志
-
-### v2.0.0 (2024-01-XX)
-- 🎉 发布两个优化版本
-- ✨ 简化 API 路由结构
-- 🔒 增强安全性防护
-- ⚡ 优化性能表现
-- 📦 精简项目依赖
-
-## 🤝 贡献指南
-
-1. Fork 项目
-2. 创建功能分支
-3. 提交更改
-4. 推送到分支
-5. 创建 Pull Request
-
-## 📄 许可证
-
-MIT License
-
-## � 相关链接
-
-- [Vercel 文档](https://vercel.com/docs)
-- [Next.js 文档](https://nextjs.org/docs)
-- [MorphoTV 项目](https://github.com/your-username/MorphoTV)
+- 📖 [详细部署指南](./DEPLOYMENT_GUIDE.md)
+- 🐛 [GitHub Issues](https://github.com/your-username/MorphoTV/issues)
+- 💬 [社区讨论](https://github.com/your-username/MorphoTV/discussions)
 
 ---
 
-**选择困难？** 如果不确定选择哪个版本，建议从 **Pages Router 轻量级版本** 开始，它更简单、更快速，满足大多数代理需求。如果后续需要更多功能，可以随时迁移到 App Router 版本。
+**选择适合您的部署方案，开始使用 MorphoTV 代理服务器！**
