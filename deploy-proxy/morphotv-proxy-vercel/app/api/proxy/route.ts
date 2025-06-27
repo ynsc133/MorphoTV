@@ -254,5 +254,4 @@ export async function OPTIONS() {
   })
 }
 
-// 配置运行时
-export const runtime = 'edge'
+// 使用默认的 Node.js 运行时

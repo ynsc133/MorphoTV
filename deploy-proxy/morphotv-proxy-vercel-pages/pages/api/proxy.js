@@ -1,15 +1,17 @@
 /**
  * MorphoTV 代理服务器 - Pages Router 轻量级版本
- * 
+ *
  * 使用方法：
  * 1. 部署到 Vercel
  * 2. 使用 https://your-app.vercel.app/api/proxy?url=目标URL 作为代理地址
  * 3. 代理格式：/api/proxy?url=https://api.example.com/data
- * 
+ *
  * 示例：
  * /api/proxy?url=https://api.example.com/data
  * /api/proxy?url=http://localhost:3000/api/test
  */
+
+import { Buffer } from 'buffer'
 
 // 允许的域名白名单（通过环境变量配置）
 const ALLOWED_DOMAINS = process.env.ALLOWED_DOMAINS?.split(',') || []
@@ -211,7 +213,4 @@ export default async function handler(req, res) {
   return handleProxyRequest(req, res, targetUrl)
 }
 
-// 配置运行时
-export const config = {
-  runtime: 'edge',
-}
+// 使用默认的 Node.js 运行时
