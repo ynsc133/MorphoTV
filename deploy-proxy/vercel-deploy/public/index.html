@@ -147,14 +147,14 @@
             const config = document.getElementById('config');
             const currentDomain = window.location.origin;
             config.textContent = `{
-  "PROXY_BASE_URL": "${currentDomain}/api/proxy"
+  "PROXY_BASE_URL": "${currentDomain}/api/proxy?=url"
 }`;
         });
 
         // 智能复制配置
         async function copyConfig() {
             const config = `{
-  "PROXY_BASE_URL": "${window.location.origin}/api/proxy"
+  "PROXY_BASE_URL": "${window.location.origin}/api/proxy?=url"
 }`;
             
             const button = event.target;
