@@ -1,10 +1,8 @@
-// 文件路径: api/proxy/[...target].js
 
-/**
- * MorphoTV 代理服务器 - Vercel 版本 (GET 路径参数最终修复版)
- * 专门处理 /api/proxy/https://... 格式的请求
- */
-import fetch from 'node-fetch';
+// 文件路径: api/proxy/[...target].js
+// 使用 CommonJS 语法来修复 ERR_REQUIRE_ESM 错误
+
+const fetch = require('node-fetch'); // <--- 已修改
 
 // 设置CORS响应头
 function setCorsHeaders(res) {
@@ -13,7 +11,8 @@ function setCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, User-Agent');
 }
 
-export default async function handler(req, res) {
+// 使用 module.exports 导出函数 <--- 已修改
+module.exports = async (req, res) => {
   // 预检请求直接通过
   if (req.method === 'OPTIONS') {
     setCorsHeaders(res);
@@ -27,13 +26,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. 从请求参数中重建目标 URL (最关键的一步)
+    // 1. 从请求参数中重建目标 URL
     const { target } = req.query;
     if (!target || target.length === 0) {
       throw new Error('Target URL is missing in the path.');
     }
 
-    // 将数组拼接成 URL，并修复协议部分的冒号
     let targetUrl = target.join('/');
     if (targetUrl.startsWith('https:/')) {
       targetUrl = targetUrl.replace('https:/', 'https://');
@@ -41,12 +39,9 @@ export default async function handler(req, res) {
       targetUrl = targetUrl.replace('http:/', 'http://');
     }
     
-    // 如果原始请求有查询参数，附加到目标 URL 后面
     const originalQueryString = req.url.split('?')[1];
-    if (originalQueryString) {
-        if (!targetUrl.includes('?')) {
-            targetUrl += '?' + originalQueryString;
-        }
+    if (originalQueryString && !targetUrl.includes('?')) {
+        targetUrl += '?' + originalQueryString;
     }
 
     new URL(targetUrl);
@@ -80,4 +75,4 @@ export default async function handler(req, res) {
     setCorsHeaders(res);
     res.status(500).json({ error: 'Internal Proxy Error', message: error.message });
   }
-}
+};
