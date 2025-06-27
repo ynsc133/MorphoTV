@@ -27,6 +27,7 @@ interface SearchSite {
   name: string;
   url: string;
   enabled: boolean;
+  extractionType?: 'tg' | 'ai';
 }
 
 interface AIModel {
@@ -42,6 +43,7 @@ const CloudDriveSettings: React.FC = () => {
   const [editingSite, setEditingSite] = useState<SearchSite | null>(null);
   const [newSiteName, setNewSiteName] = useState("");
   const [newSiteUrl, setNewSiteUrl] = useState("");
+  const [newSiteExtractionType, setNewSiteExtractionType] = useState<'tg' | 'ai'>('tg');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // 监听localStorage中AI模型列表的变化
@@ -127,10 +129,12 @@ const CloudDriveSettings: React.FC = () => {
         name: newSiteName.trim(),
         url: newSiteUrl.trim(),
         enabled: true,
+        extractionType: newSiteExtractionType || 'tg',
       };
       setSites([...sites, newSite]);
       setNewSiteName("");
       setNewSiteUrl("");
+      setNewSiteExtractionType('tg');
       setIsDialogOpen(false);
     }
   };
@@ -151,6 +155,7 @@ const CloudDriveSettings: React.FC = () => {
     setEditingSite(site);
     setNewSiteName(site.name);
     setNewSiteUrl(site.url);
+    setNewSiteExtractionType(site.extractionType || 'tg');
     setIsDialogOpen(true);
   };
 
@@ -158,12 +163,13 @@ const CloudDriveSettings: React.FC = () => {
     if (editingSite && newSiteName.trim() && newSiteUrl.trim()) {
       setSites(sites.map(site => 
         site.id === editingSite.id 
-          ? { ...site, name: newSiteName.trim(), url: newSiteUrl.trim() }
+          ? { ...site, name: newSiteName.trim(), url: newSiteUrl.trim(), extractionType: newSiteExtractionType || 'tg' }
           : site
       ));
       setEditingSite(null);
       setNewSiteName("");
       setNewSiteUrl("");
+      setNewSiteExtractionType('tg');
       setIsDialogOpen(false);
     }
   };
@@ -200,7 +206,8 @@ const CloudDriveSettings: React.FC = () => {
           id: site.id || Date.now().toString(),
           name: site.name || '',
           url: site.url || '',
-          enabled: site.enabled ?? true
+          enabled: site.enabled ?? true,
+          extractionType: site.extractionType || 'tg',
         }));
 
         setSites(validatedSites);
@@ -228,7 +235,7 @@ const CloudDriveSettings: React.FC = () => {
             <SelectTrigger>
               <SelectValue placeholder="选择AI模型" />
             </SelectTrigger>
-            <SelectContent className="z-110">
+            <SelectContent className="z-[120]">
               {models.length > 0 ? (
                 models.map((model) => (
                   <SelectItem key={model.id} value={model.id}>
@@ -394,6 +401,21 @@ const CloudDriveSettings: React.FC = () => {
                     <p className="text-sm text-muted-foreground">
                       提示：在URL中使用 {"{keyword}"} 作为关键词占位符，搜索时会自动替换为实际搜索词
                     </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="site-extraction-type">提取方式</Label>
+                    <Select
+                      value={newSiteExtractionType}
+                      onValueChange={(value) => setNewSiteExtractionType(value as 'tg' | 'ai')}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="选择提取方式" />
+                      </SelectTrigger>
+                      <SelectContent className="z-[120]">
+                        <SelectItem value="tg">TG频道规则</SelectItem>
+                        <SelectItem value="ai">AI模型</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <Button 
                     onClick={editingSite ? handleSaveEdit : handleAddSite}
