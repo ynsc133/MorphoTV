@@ -1,7 +1,8 @@
 /**
- * MorphoTV 代理服务器 - Vercel 版本 (查询参数方式)
- * 使用查询参数而不是路径参数
+ * MorphoTV 代理服务器 - Vercel 版本 (最终修复版)
+ * 使用 POST 请求和 JSON Body，并增加详细的错误日志
  */
+import fetch from 'node-fetch';
 
 // 设置 CORS 响应头
 function setCorsHeaders(res) {
@@ -11,143 +12,101 @@ function setCorsHeaders(res) {
   res.setHeader('Access-Control-Max-Age', '86400');
 }
 
-// 处理代理请求
-async function handleProxyRequest(req, res, targetUrl) {
-  const startTime = Date.now();
-  
-  try {
-    const fetch = (await import('node-fetch')).default;
-
-    console.log(`[PROXY] 开始处理请求: ${req.method} ${targetUrl}`);
-
-    // 构建请求头
-    const proxyHeaders = {};
-    
-    const excludedHeaders = [
-      'host', 'x-forwarded-for', 'x-forwarded-proto', 
-      'x-vercel-id', 'connection', 'content-length',
-      'x-real-ip', 'x-forwarded-host'
-    ];
-    
-    Object.keys(req.headers).forEach(key => {
-      const lowerKey = key.toLowerCase();
-      if (!excludedHeaders.includes(lowerKey)) {
-        proxyHeaders[key] = req.headers[key];
-      }
-    });
-
-    proxyHeaders['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-    proxyHeaders['Accept'] = '*/*';
-    proxyHeaders['Accept-Language'] = 'zh-CN,zh;q=0.9,en;q=0.8';
-
-    const fetchOptions = {
-      method: req.method,
-      headers: proxyHeaders,
-      timeout: 30000,
-    };
-
-    // 处理请求体
-    if (req.method !== 'GET' && req.method !== 'HEAD') {
-      const chunks = [];
-      for await (const chunk of req) {
-        chunks.push(chunk);
-      }
-      if (chunks.length > 0) {
-        fetchOptions.body = Buffer.concat(chunks);
-      }
-    }
-
-    const response = await fetch(targetUrl, fetchOptions);
-    const duration = Date.now() - startTime;
-
-    console.log(`[PROXY] 请求完成: ${response.status} (${duration}ms)`);
-
-    res.status(response.status);
-
-    const excludedResponseHeaders = [
-      'content-encoding', 'transfer-encoding', 'connection',
-      'content-length'
-    ];
-
-    response.headers.forEach((value, key) => {
-      const lowerKey = key.toLowerCase();
-      if (!excludedResponseHeaders.includes(lowerKey)) {
-        res.setHeader(key, value);
-      }
-    });
-
-    setCorsHeaders(res);
-
-    const buffer = await response.buffer();
-    res.end(buffer);
-
-  } catch (error) {
-    console.error(`[PROXY] 请求失败:`, error.message);
-    setCorsHeaders(res);
-    res.status(500).json({
-      error: 'Proxy request failed',
-      message: error.message,
-      targetUrl: targetUrl,
-      timestamp: new Date().toISOString()
-    });
-  }
-}
-
 export default async function handler(req, res) {
-  console.log(`[REQUEST] ${req.method} ${req.url}`);
-
+  // 1. 预检请求直接通过
   if (req.method === 'OPTIONS') {
     setCorsHeaders(res);
     return res.status(204).end();
   }
 
+  // 2. 只接受 POST 请求
+  if (req.method !== 'POST') {
+    setCorsHeaders(res);
+    res.setHeader('Allow', 'POST, OPTIONS');
+    return res.status(405).json({ error: 'Method Not Allowed', message: 'Only POST requests are accepted.' });
+  }
+
+  // 3. 从请求体中获取目标 URL
+  let targetUrl;
   try {
-    // 使用查询参数获取目标URL
-    const { url: targetUrl } = req.query;
+    // Vercel 会自动解析 JSON body
+    if (typeof req.body === 'string' && req.body) {
+        req.body = JSON.parse(req.body);
+    }
+    targetUrl = req.body.url;
     
     if (!targetUrl) {
-      setCorsHeaders(res);
-      return res.status(400).json({
-        error: 'Missing target URL',
-        message: 'Please provide target URL as query parameter',
-        usage: 'GET /api/proxy?url=https://example.com',
-        example: '/api/proxy?url=https%3A//httpbin.org/get'
-      });
+      throw new Error('Missing "url" in request body.');
     }
+    // 验证 URL
+    const urlObj = new URL(targetUrl);
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      throw new Error('Invalid protocol in target URL.');
+    }
+  } catch (error) {
+    setCorsHeaders(res);
+    return res.status(400).json({ error: 'Bad Request', message: error.message });
+  }
 
-    // 解码URL
-    const decodedUrl = decodeURIComponent(targetUrl);
+  console.log(`[PROXY START] Forwarding request to: ${targetUrl}`);
+
+  try {
+    // 4. 构建并发送代理请求
+    const proxyHeaders = { ...req.headers };
+    // 删除 Vercel/Next.js 添加的或不应转发的头
+    const excludedHeaders = [
+      'host', 'connection', 'content-length', 'content-type',
+      'x-vercel-id', 'x-real-ip', 'x-forwarded-for', 
+      'x-forwarded-proto', 'x-forwarded-host'
+    ];
+    excludedHeaders.forEach(h => delete proxyHeaders[h]);
+
+    // **关键：伪造一个真实的浏览器请求头，特别是 Referer**
+    proxyHeaders['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+    proxyHeaders['Referer'] = 'https://movie.douban.com/'; // 豆瓣可能会检查这个
+    proxyHeaders['Accept'] = 'application/json, text/plain, */*';
     
-    // 验证URL
-    try {
-      const urlObj = new URL(decodedUrl);
-      if (!['http:', 'https:'].includes(urlObj.protocol)) {
-        throw new Error('Only HTTP and HTTPS are allowed');
-      }
-    } catch (urlError) {
-      setCorsHeaders(res);
-      return res.status(400).json({
-        error: 'Invalid URL',
-        message: urlError.message,
-        provided: decodedUrl
-      });
-    }
+    const response = await fetch(targetUrl, {
+      method: 'GET', // 假设目标请求总是 GET
+      headers: proxyHeaders,
+      timeout: 15000, // 15秒超时
+    });
 
-    await handleProxyRequest(req, res, decodedUrl);
+    // 5. 关键的错误调试：如果目标服务器返回错误，记录错误内容
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(`[PROXY TARGET ERROR] Status: ${response.status}, URL: ${targetUrl}, Body: ${errorBody.substring(0, 500)}`);
+      setCorsHeaders(res);
+      // 将目标服务器的错误状态码和内容转发给客户端
+      res.status(response.status).send(errorBody);
+      return;
+    }
+    
+    console.log(`[PROXY SUCCESS] Status: ${response.status} from ${targetUrl}`);
+
+    // 6. 成功，转发响应
+    setCorsHeaders(res);
+    res.status(response.status);
+    response.headers.forEach((value, key) => {
+        // 过滤掉一些不需要的响应头
+        if (!['content-encoding', 'transfer-encoding', 'connection'].includes(key.toLowerCase())) {
+            res.setHeader(key, value);
+        }
+    });
+
+    const buffer = await response.buffer();
+    res.send(buffer);
 
   } catch (error) {
-    console.error('[ERROR]', error);
+    console.error(`[PROXY FATAL ERROR] URL: ${targetUrl}, Error: ${error.message}`, error);
     setCorsHeaders(res);
-    res.status(500).json({
-      error: 'Internal error',
-      message: error.message
-    });
+    res.status(502).json({ error: 'Bad Gateway', message: error.message });
   }
 }
 
+// 注意：这里不再需要 bodyParser: false，让 Vercel 自动处理
 export const config = {
   api: {
-    bodyParser: false,
     responseLimit: '10mb',
   },
-}
+};
