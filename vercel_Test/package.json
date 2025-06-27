@@ -1,20 +1,14 @@
 {
-  "name": "morphotv-proxy-vercel",
+  "name": "morphotv-proxy",
   "version": "1.0.0",
-  "description": "MorphoTV 代理服务器 - Vercel 版本",
+  "description": "MorphoTV 代理服务器 - Vercel版",
   "main": "index.js",
   "scripts": {
     "dev": "vercel dev",
-    "build": "echo 'No build step required'",
-    "start": "vercel dev"
+    "deploy": "vercel"
   },
-  "dependencies": {
-    "node-fetch": "^3.3.2"
-  },
+  "dependencies": {},
   "engines": {
-    "node": ">=18.0.0"
-  },
-  "keywords": ["proxy", "morphotv", "vercel"],
-  "author": "Your Name",
-  "license": "MIT"
+    "node": ">=18"
+  }
 }
