@@ -227,7 +227,7 @@ export default {
         <p>在 MorphoTV 初始化界面输入以下代理地址：</p>
         <div class="endpoint">
         {
-          "PROXY_BASE_URL": "${url.origin}/proxy/"
+          "PROXY_BASE_URL": "${url.origin}/proxy"
         }
         </div>
         
