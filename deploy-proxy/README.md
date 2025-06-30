@@ -1,378 +1,219 @@
-# MorphoTV 云端代理服务器部署方案
+# MorphoTV 代理服务器部署方案
 
-> ☁️ 为 MorphoTV 项目提供的云端代理服务器解决方案，解决跨域请求问题
+> 🎬 为 MorphoTV 提供的多平台代理服务器部署方案
 
-## 📋 方案概览
+## 📁 项目结构
 
-本文件夹包含了 **4 种云端代理服务器部署方案**，每种方案都有其独特的优势和适用场景：
+```
+deploy-proxy/
+├── cloudflare-worker.js           # Cloudflare Workers 部署方案
+├── deno-deploy-proxy.ts           # Deno Deploy 部署方案
+├── deno-proxy-original.ts         # 原始 Deno 代理实现
+├── vercel-deploy/                  # Vercel 部署方案
+│   ├── api/proxy.js               # Vercel API 路由
+│   ├── api/health.js              # 健康检查接口
+│   ├── public/index.html          # 状态页面
+│   ├── package.json               # 项目配置
+│   └── vercel.json                # Vercel 配置
+├── DEPLOYMENT_GUIDE.md            # 详细部署指南
+└── README.md                       # 本文档
+```
 
-| 方案 | 平台 | 难度 | 性能 | 成本 | 推荐指数 |
-|------|------|------|------|------|----------|
-| [Deno Deploy](#1-deno-deploy) | 云端 | ⭐⭐ | ⭐⭐⭐⭐⭐ | 免费 | ⭐⭐⭐⭐⭐ |
-| [Cloudflare Workers](#2-cloudflare-workers) | 云端 | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 免费 | ⭐⭐⭐⭐ |
-| [Vercel Edge Functions](#3-vercel-edge-functions) | 云端 | ⭐⭐⭐ | ⭐⭐⭐⭐ | 免费 | ⭐⭐⭐⭐ |
-| [Deno 本地运行](#4-deno-本地运行) | 本地 | ⭐ | ⭐⭐⭐ | 免费 | ⭐⭐⭐ |
+## 🔄 方案对比
 
-> 🏠 **本地部署**: 如需本地 Express 服务器部署，请查看 [`../server/`](../server/) 文件夹
+### 🌟 方案一：Cloudflare Workers（强烈推荐）
+
+**为什么是首选？**
+- 🚀 **部署最简单**：3 分钟即可完成部署
+- ⚡ **性能最强**：全球 200+ 边缘节点，<50ms 响应
+- 💰 **免费额度最高**：每天 100,000 次请求
+- 🔒 **安全性最好**：自动 DDoS 防护和 SSL
+- 🌍 **全球覆盖**：适合所有地区用户
+
+**技术特点：**
+- ✅ 全球边缘网络部署
+- ✅ 每天 100,000 次免费请求
+- ✅ 毫秒级冷启动（<1ms）
+- ✅ 自动 HTTPS 和 HTTP/2
+- ✅ 无服务器架构
+- ✅ 零配置部署
+
+### 方案二：Deno Deploy
+
+**适用场景：**
+- TypeScript 优先的项目
+- 现代化开发体验需求
+- 需要原生 ES 模块支持
+- 追求开发效率的场景
+
+**技术特点：**
+- ✅ 原生 TypeScript 支持
+- ✅ 现代 V8 引擎
+- ✅ 全球分布式部署
+- ✅ 零配置部署
+- ✅ 内置性能监控
+
+### 方案三：Vercel 部署
+
+**适用场景：**
+- 熟悉 Next.js 生态的开发者
+- 需要快速部署的项目
+- 希望与 GitHub 集成的场景
+- 追求简单配置的用户
+
+**技术特点：**
+- ✅ 与 GitHub 无缝集成
+- ✅ 自动 CI/CD 部署
+- ✅ 免费 SSL 证书
+- ✅ 全球 CDN 分发
+- ✅ 零配置部署
+
+### 方案四：本地部署
+
+**适用场景：**
+- 企业内网环境
+- 需要完全控制的场景
+- 自建服务器部署
+- 开发测试环境
+
+**技术特点：**
+- ✅ 完全自主控制
+- ✅ 无外部依赖
+- ✅ 可自定义配置
+- ✅ 适合内网部署
+- ✅ 支持自定义端口
+
+## 📊 详细对比
+
+| 特性 | 🌟 Cloudflare Workers | Deno Deploy | Vercel | 本地部署 |
+|------|----------------------|-------------|--------|----------|
+| **推荐度** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **部署难度** | 🟢 极简（3分钟） | 🟢 简单 | 🟢 简单 | 🟡 中等 |
+| **性能** | 🟢 极高（<50ms） | 🟢 高 | 🟢 高 | 🟡 取决于硬件 |
+| **免费额度** | 🟢 100K 请求/天 | 🟡 100K 请求/月 | 🟡 100GB 带宽/月 | 🟢 无限制 |
+| **全球分布** | 🟢 200+ 节点 | 🟢 全球分布 | 🟢 全球 CDN | 🔴 单点 |
+| **冷启动** | 🟢 <1ms | 🟡 <10ms | 🟡 <100ms | 🟢 无冷启动 |
+| **TypeScript** | 🟡 支持 | 🟢 原生支持 | 🟢 完整支持 | 🟡 需配置 |
+| **监控** | 🟢 内置完善 | 🟢 内置 | 🟢 内置 | 🔴 需自建 |
+| **自定义域名** | 🟢 免费 | 🟢 支持 | 🟢 免费 | 🟢 支持 |
+| **维护成本** | 🟢 零维护 | 🟢 低 | 🟢 低 | 🔴 高 |
+| **GitHub 集成** | 🟡 需配置 | 🟢 原生支持 | 🟢 完美集成 | 🔴 需自建 |
+
+> 💡 **结论**：Cloudflare Workers 性能最佳，Vercel 开发体验最好，Deno Deploy 对 TypeScript 最友好！
 
 ## 🚀 快速开始
 
-### 推荐方案选择
+### 🌟 推荐路径：Cloudflare Workers（3 分钟部署）
 
-- **☁️ 云端部署**: Deno Deploy (最简单)
-- **🌐 全球加速**: Cloudflare Workers
-- **⚡ 零配置**: Vercel Edge Functions
-- **🦕 本地 Deno**: Deno 本地运行
+**为什么选择 Cloudflare Workers？**
+- ✅ **最简单**：无需安装任何软件，浏览器即可完成
+- ✅ **最快速**：3 分钟即可完成部署
+- ✅ **最稳定**：全球 200+ 节点，99.9% 可用性
+- ✅ **最经济**：免费额度足够个人使用
 
----
+**快速部署步骤**：
+1. 访问 [Cloudflare Workers](https://dash.cloudflare.com/)
+2. 创建新 Worker
+3. 复制粘贴 `cloudflare-worker.js` 代码
+4. 点击部署 - 完成！
 
-## 1. Deno Deploy
+### 其他方案
 
-### 📁 文件
-- `deno-deploy-proxy.ts` - Deno Deploy 优化版本
+- **TypeScript 爱好者**：Deno Deploy（原生 TS 支持）
+- **企业内网用户**：本地部署（完全控制）
 
-### ✨ 特点
-- ✅ 零配置部署
-- ✅ 全球 CDN 加速
-- ✅ TypeScript 原生支持
-- ✅ 自动扩缩容
-- ✅ 免费额度充足
+### 📖 详细指南
 
-### 🛠️ 部署步骤
+请参考 [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) 获取详细的部署步骤。
 
-1. **访问 Deno Deploy**
-   ```
-   https://dash.deno.com/
-   ```
+### 🔧 配置 MorphoTV
 
-2. **创建新项目**
-   - 点击 "New Project"
-   - 选择 "Deploy from local file"
+部署成功后，在 MorphoTV 中配置代理地址：
 
-3. **上传文件**
-   - 上传 `deno-deploy-proxy.ts` 文件
-   - 点击 "Deploy"
-
-4. **获取地址**
-   - 复制项目 URL: `https://your-project.deno.dev`
-   - 代理地址: `https://your-project.deno.dev/proxy/`
-
-### 🔧 配置
+**Cloudflare Workers 配置示例**：
 ```json
 {
-  "PROXY_BASE_URL": "https://your-project.deno.dev/proxy/"
+  "PROXY_BASE_URL": "https://your-worker.workers.dev/proxy"
 }
 ```
 
-### 💡 适用场景
-- 快速原型开发
-- 个人项目
-- 不想维护服务器
-- 需要全球访问
+**其他平台配置示例**：
+- **Deno Deploy**: `"PROXY_BASE_URL": "https://your-project.deno.dev/proxy"`
+- **Vercel**: `"PROXY_BASE_URL": "https://your-app.vercel.app/api/proxy?url="`
+- **本地部署**: `"PROXY_BASE_URL": "http://localhost:3000/proxy"`
 
----
+## 🔧 功能特性
 
-## 2. Cloudflare Workers
+### 核心功能
 
-### 📁 文件
-- `cloudflare-worker.js` - Cloudflare Workers 代码
+- ✅ **CORS 跨域支持**：解决浏览器跨域限制
+- ✅ **请求转发**：支持 GET、POST、PUT、DELETE 等方法
+- ✅ **头部转发**：保持原始请求头信息
+- ✅ **错误处理**：友好的错误信息返回
+- ✅ **安全防护**：基础的安全头部设置
 
-### ✨ 特点
-- ✅ 全球边缘计算
-- ✅ 极低延迟
-- ✅ 强大的免费额度
-- ✅ 自动 DDoS 防护
-- ✅ 高可用性
+### 高级功能
 
-### 🛠️ 部署步骤
+- ✅ **域名白名单**：可配置允许访问的域名
+- ✅ **请求日志**：记录代理请求信息
+- ✅ **性能优化**：缓存策略和压缩支持
+- ✅ **监控支持**：内置性能监控
+- ✅ **自动重试**：网络错误自动重试机制
 
-1. **访问 Cloudflare Dashboard**
-   ```
-   https://dash.cloudflare.com/
-   ```
+## 🔒 安全考虑
 
-2. **进入 Workers & Pages**
-   - 点击 "Workers & Pages"
-   - 点击 "Create application"
-   - 选择 "Create Worker"
+### 基础安全
 
-3. **部署代码**
-   - 复制 `cloudflare-worker.js` 的内容
-   - 粘贴到编辑器中
-   - 点击 "Save and Deploy"
+- 设置合理的域名白名单
+- 配置安全响应头
+- 限制请求大小和频率
 
-4. **获取地址**
-   - 代理地址: `https://your-worker.your-subdomain.workers.dev/proxy/`
+### 高级安全
 
-### 🔧 配置
-```json
-{
-  "PROXY_BASE_URL": "https://your-worker.your-subdomain.workers.dev/proxy/"
-}
-```
+- 实施 API 密钥验证（可选）
+- 配置 IP 白名单（本地部署）
+- 启用请求日志监控
 
-### 💡 适用场景
-- 高性能需求
-- 全球用户访问
-- 需要 CDN 加速
-- 企业级应用
+## 📈 性能优化
 
----
+### Cloudflare Workers
 
-## 3. Vercel Edge Functions
+- 利用全球 CDN 网络
+- 自动缓存静态资源
+- 智能路由优化
 
-### 📁 文件
-- `vercel-edge-function.ts` - Vercel Edge Functions 代码
+### Deno Deploy
 
-### ✨ 特点
-- ✅ 零冷启动
-- ✅ 全球边缘网络
-- ✅ 与 Next.js 完美集成
-- ✅ 自动 HTTPS
-- ✅ 简单部署
+- V8 引擎优化
+- 原生 ES 模块支持
+- 自动代码分割
 
-### 🛠️ 部署步骤
+### 本地部署
 
-#### 方法一：GitHub 自动部署（推荐）
+- 使用 PM2 进程管理
+- 配置负载均衡
+- 启用 Gzip 压缩
 
-1. **准备项目文件**
-   ```bash
-   # 1. 创建项目目录
-   mkdir morphotv-proxy-vercel
-   cd morphotv-proxy-vercel
-
-   # 2. 初始化项目
-   npm init -y
-   ```
-
-2. **安装依赖**
-   ```bash
-   # 安装 Next.js 和相关依赖
-   npm install next@latest react@latest react-dom@latest
-   npm install -D typescript @types/react @types/node
-   ```
-
-3. **创建项目结构**
-
-   **选择一种路由方式**：
-
-   **App Router（推荐，Next.js 13+）**：
-   ```bash
-   # 创建 App Router 目录结构
-   mkdir -p app/api/proxy/[...slug]
-
-   # 复制代码文件
-   cp ../vercel-edge-function.ts app/api/proxy/[...slug]/route.ts
-   ```
-
-   **Pages Router（兼容旧版本）**：
-   ```bash
-   # 创建 Pages Router 目录结构
-   mkdir -p pages/api/proxy
-
-   # 复制代码文件
-   cp ../vercel-edge-function.ts pages/api/proxy/[...slug].ts
-   ```
-
-4. **配置 package.json**
-   ```json
-   {
-     "scripts": {
-       "dev": "next dev",
-       "build": "next build",
-       "start": "next start"
-     }
-   }
-   ```
-
-5. **推送到 GitHub 并连接 Vercel**
-   - 将项目推送到 GitHub 仓库
-   - 在 [Vercel Dashboard](https://vercel.com/dashboard) 导入项目
-   - Vercel 会自动检测 Next.js 项目并部署
-
-#### 方法二：Vercel CLI 部署
-
-1. **安装 Vercel CLI**
-   ```bash
-   npm i -g vercel
-   ```
-
-2. **登录并部署**
-   ```bash
-   # 登录 Vercel
-   vercel login
-
-   # 部署项目
-   vercel --prod
-   ```
-
-#### 方法三：单文件部署（最简单）
-
-1. **创建最小项目**
-   ```bash
-   mkdir morphotv-proxy-simple
-   cd morphotv-proxy-simple
-
-   # 创建 package.json
-   echo '{"type": "module"}' > package.json
-
-   # 创建 API 路由
-   mkdir -p api/proxy
-   cp ../vercel-edge-function.ts api/proxy/[...slug].ts
-   ```
-
-2. **直接部署**
-   ```bash
-   vercel --prod
-   ```
-
-### 🔧 配置
-
-部署成功后，在 MorphoTV 中使用以下配置：
-
-```json
-{
-  "PROXY_BASE_URL": "https://your-app.vercel.app/api/proxy/"
-}
-```
-
-**注意事项**：
-- 替换 `your-app` 为您的实际 Vercel 应用名称
-- 确保 URL 以 `/api/proxy/` 结尾
-- Vercel 会自动提供 HTTPS 证书
-
-**测试代理功能**：
-访问 `https://your-app.vercel.app/api/proxy/https/httpbin.org/get` 测试是否正常工作。
-
-### 💡 适用场景
-- Next.js 项目
-- 需要与前端集成
-- 快速部署需求
-- 现代化技术栈
-
----
-
-## 4. Deno 本地运行
-
-### 📁 文件
-- `deno-proxy-original.ts` - 本地 Deno 运行版本
-
-### ✨ 特点
-- ✅ 无需 Node.js
-- ✅ TypeScript 原生支持
-- ✅ 安全的运行时
-- ✅ 现代化 API
-- ✅ 零配置启动
-
-### 🛠️ 部署步骤
-
-1. **安装 Deno**
-   ```bash
-   # Windows (PowerShell)
-   irm https://deno.land/install.ps1 | iex
-   
-   # macOS/Linux
-   curl -fsSL https://deno.land/install.sh | sh
-   ```
-
-2. **运行服务器**
-   ```bash
-   # 启动服务器（默认端口8080）
-   deno run --allow-net --allow-env deno-proxy-original.ts
-
-   # 指定自定义端口
-   PORT=3000 deno run --allow-net --allow-env deno-proxy-original.ts
-   ```
-
-### 🔧 配置
-- **默认端口**: 8080
-- **代理地址**: `http://localhost:8080/proxy/` （默认）或 `http://localhost:3000/proxy/` （自定义端口）
-- **状态页面**: `http://localhost:8080/` （默认）或 `http://localhost:3000/` （自定义端口）
-
-### 💡 适用场景
-- Deno 开发环境
-- 学习现代 JavaScript
-- 安全性要求高
-- 简单快速启动
-
----
-
-## 🔧 MorphoTV 配置方法
-
-无论选择哪种部署方案，在 MorphoTV 初始化界面中都需要配置代理地址：
-
-### JSON 配置格式
-```json
-{
-  "PROXY_BASE_URL": "你的代理地址/proxy/"
-}
-```
-
-### 配置步骤
-1. 打开 MorphoTV 应用
-2. 在初始化对话框中选择 "JSON数据" 标签页
-3. 输入上述 JSON 配置
-4. 点击 "导入JSON数据"
-5. 系统自动重新加载
-
----
-
-## 🔍 故障排除
+## 🛠️ 故障排除
 
 ### 常见问题
 
-#### 1. 代理服务器无法访问
-- 检查服务器是否正常运行
-- 确认端口没有被防火墙阻止
-- 验证代理地址格式是否正确
+1. **代理不工作**：检查代理地址格式和目标 URL
+2. **CORS 错误**：确认代理服务器正常运行
+3. **性能问题**：检查网络连接和服务器负载
 
-#### 2. CORS 错误
-- 确认代理服务器已启用 CORS
-- 检查请求头是否正确设置
-- 验证目标 URL 是否可访问
+### 调试方法
 
-#### 3. 请求超时
-- 检查网络连接
-- 增加请求超时时间
-- 尝试更换代理服务器
+- 查看平台日志
+- 使用浏览器开发者工具
+- 测试代理端点
 
-### 测试方法
+## 📞 技术支持
 
-访问以下地址测试代理功能：
-```
-你的代理地址/proxy/https://httpbin.org/get
-```
-
-应该返回 JSON 格式的响应数据。
+- 📖 [详细部署指南](./DEPLOYMENT_GUIDE.md)
+- 🐛 [GitHub Issues](https://github.com/your-username/MorphoTV/issues)
+- 💬 [社区讨论](https://github.com/your-username/MorphoTV/discussions)
 
 ---
 
-## 📊 性能对比
-
-| 指标 | Express | Deno Deploy | Cloudflare | Vercel | Deno 本地 |
-|------|---------|-------------|------------|--------|-----------|
-| 冷启动时间 | 0ms | ~100ms | ~5ms | ~10ms | 0ms |
-| 全球延迟 | 取决于服务器 | <50ms | <20ms | <30ms | 本地 |
-| 并发处理 | 高 | 很高 | 极高 | 高 | 中等 |
-| 免费额度 | 无限制* | 100万请求/月 | 10万请求/天 | 100GB/月 | 无限制 |
-| 自定义域名 | ✅ | ✅ | ✅ | ✅ | ❌ |
-
-*需要自己的服务器
-
----
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request 来改进这些代理服务器方案！
-
-## 📄 许可证
-
-MIT License - 详见各文件头部注释
-
----
-
-**选择建议**: 
-- 🚀 **快速开始**: Deno Deploy
-- 🏠 **本地开发**: Express 本地服务器  
-- ⚡ **最佳性能**: Cloudflare Workers
-- 🔧 **易于集成**: Vercel Edge Functions
+**选择适合您的部署方案，开始使用 MorphoTV 代理服务器！**

@@ -1,6 +1,5 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { useTheme } from "@/components/theme-provider";
-import { Settings, Sun, Moon, Home, History } from "lucide-react";
+import { Settings, Home, History } from "lucide-react";
 import { useState, useEffect } from "react";
 
 import SettingsDialog from "@/components/settings-dialog";
@@ -13,11 +12,9 @@ import { RouterUtils } from "@/utils/router";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function MainLayout() {
-  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [showInitDialog, setShowInitDialog] = useState(false);
 
   // 注入访问统计代码
@@ -60,11 +57,6 @@ export default function MainLayout() {
   useEffect(() => {
     RouterUtils.init(navigate);
   }, [navigate]);
-
-  // 确保组件已挂载，避免主题切换时的水合错误
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // 监听滚动事件
   useEffect(() => {
