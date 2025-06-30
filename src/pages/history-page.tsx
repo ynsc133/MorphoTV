@@ -181,7 +181,6 @@ export default function HistoryPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold mb-2">观看历史</h1>
-            <p className="text-muted-foreground">查看你的观看记录</p>
           </div>
           {watchHistory.length > 0 && (
             <div className="flex gap-2">
@@ -203,7 +202,7 @@ export default function HistoryPage() {
             <AlertDescription>还没有观看记录，去首页发现精彩内容吧！</AlertDescription>
           </Alert>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6  gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6  gap-4">
             {watchHistory.map((item) => (
               <Card
                 key={item.vodId + item.episode + item.timestamp}

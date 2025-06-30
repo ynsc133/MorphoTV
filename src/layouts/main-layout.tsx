@@ -1,6 +1,6 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme-provider";
-import { Settings, Sun, Moon, Home } from "lucide-react";
+import { Settings, Sun, Moon, Home, History } from "lucide-react";
 import { useState, useEffect } from "react";
 
 import SettingsDialog from "@/components/settings-dialog";
@@ -22,35 +22,35 @@ export default function MainLayout() {
 
   // 注入访问统计代码
   useEffect(() => {
-    const analyticsScript = localStorage.getItem('ANALYTICS_SCRIPT');
+    const analyticsScript = localStorage.getItem("ANALYTICS_SCRIPT");
     if (analyticsScript) {
       try {
         // 创建临时div来解析script标签
-        const tempDiv = document.createElement('div');
+        const tempDiv = document.createElement("div");
         tempDiv.innerHTML = analyticsScript;
-        const scriptTag = tempDiv.querySelector('script');
-        
+        const scriptTag = tempDiv.querySelector("script");
+
         if (scriptTag) {
           // 创建新的script元素
-          const script = document.createElement('script');
-          
+          const script = document.createElement("script");
+
           // 复制所有属性
-          Array.from(scriptTag.attributes).forEach(attr => {
+          Array.from(scriptTag.attributes).forEach((attr) => {
             script.setAttribute(attr.name, attr.value);
           });
-          
+
           // 添加到document中
           document.head.appendChild(script);
         }
       } catch (error) {
-        console.error('Failed to inject analytics script:', error);
+        console.error("Failed to inject analytics script:", error);
       }
     }
   }, []);
 
   // 检查系统初始化状态
   useEffect(() => {
-    const proxyBaseUrl = localStorage.getItem('PROXY_BASE_URL');
+    const proxyBaseUrl = localStorage.getItem("PROXY_BASE_URL");
     if (!proxyBaseUrl) {
       setShowInitDialog(true);
     }
@@ -120,18 +120,23 @@ export default function MainLayout() {
                 </Button>
               </nav>
 
+
               {/* 分隔线 */}
-              <div className="hidden md:block w-px h-6 bg-border/50 mx-2"></div>
+           
 
               {/* 主题切换按钮 */}
-              {mounted && (
+              {/* {mounted && (
                 <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="hover:bg-muted/80 transition-colors">
                   {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                 </Button>
-              )}
+              )} */}
 
               {/* 设置按钮（移动端） */}
-              <Button variant="ghost" size="icon" className="md:hidden hover:bg-muted/80" onClick={() => setShowSettings(true)}>
+             
+              <Button variant="ghost" size="icon" className="md:hidden hover:bg-muted/80" onClick={() => navigate('/history')}>
+                <History className="w-4 h-4" />
+              </Button>
+               <Button variant="ghost" size="icon" className="md:hidden hover:bg-muted/80" onClick={() => setShowSettings(true)}>
                 <Settings className="w-4 h-4" />
               </Button>
             </div>

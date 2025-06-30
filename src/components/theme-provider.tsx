@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react"
+import { themeManager } from "@/utils/theme-manager"
 
 type Theme = "dark" | "light" | "system"
 
@@ -42,10 +43,39 @@ export function ThemeProvider({
         : "light"
 
       root.classList.add(systemTheme)
+      // 通知主题管理器主题模式已变化
+      themeManager.onThemeModeChange();
       return
     }
     root.classList.add(theme)
+    // 通知主题管理器主题模式已变化
+    themeManager.onThemeModeChange();
   }, [theme])
+
+  // 应用保存的颜色方案
+  useEffect(() => {
+    const savedColorScheme = localStorage.getItem("morphotv-color-scheme");
+    if (savedColorScheme) {
+      const root = document.documentElement;
+      
+      // 移除所有可能的主题色类
+      const colorSchemes = [
+        "amethyst-haze"
+      ];
+      
+      colorSchemes.forEach(scheme => {
+        root.classList.remove(`theme-${scheme}`);
+      });
+      
+      // 添加保存的颜色方案
+      root.classList.add(`theme-${savedColorScheme}`);
+    }
+  }, []);
+
+  // 初始化主题管理器
+  useEffect(() => {
+    themeManager.initTheme();
+  }, []);
 
   const value = {
     theme,

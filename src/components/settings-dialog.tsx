@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Settings, Server, Database, Bot, Archive, Link, Menu } from "lucide-react";
+import { Settings, Server, Database, Bot, Archive, Link, Menu, Palette } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider } from "@/components/ui/sidebar";
@@ -11,6 +11,7 @@ import AIModelSettings from "@/components/ai-model-settings";
 import CloudDriveSettings from "@/components/cloud-drive-settings";
 import DataManagement from "@/components/data-management";
 import OnlineParserSettings from "@/components/online-parser-settings";
+import AppearanceSettings from "@/components/appearance-settings";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface SettingsDialogProps {
 }
 
 const menuItems = [
+  { key: "appearance", icon: <Palette className="w-4 h-4" />, label: "外观设置" },
   { key: "proxy", icon: <Settings className="w-4 h-4" />, label: "代理设置" },
   { key: "site", icon: <Server className="w-4 h-4" />, label: "采集站点" },
   { key: "parser", icon: <Link className="w-4 h-4" />, label: "在线解析" },
@@ -104,12 +106,14 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onOpenChange }) =
             </header>
 
             <ScrollArea className="h-[calc(100vh-4rem)] md:h-[580px] p-4">
+             {activeKey === "appearance" && <AppearanceSettings />} 
               {activeKey === "proxy" && <ProxySettings />}
               {activeKey === "site" && <ApiSitesList />}
               {activeKey === "parser" && <OnlineParserSettings />}
               {activeKey === "data" && <DataManagement />}
               {activeKey === "ai" && <AIModelSettings />}
               {activeKey === "drive" && <CloudDriveSettings />}
+         
             </ScrollArea>
           </main>
         </SidebarProvider>
