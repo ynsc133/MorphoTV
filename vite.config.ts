@@ -19,31 +19,31 @@ export default defineConfig(() => {
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
-              if (id.includes('react') || id.includes('react-dom')) {
-                return 'react';
-              }
-              if (id.includes('react-router-dom')) {
-                return 'router';
-              }
+              // if (id.includes('react') || id.includes('react-dom')) {
+              //   return 'react';
+              // }
+              // if (id.includes('react-router-dom')) {
+              //   return 'router';
+              // }
               if (id.includes('artplayer') || id.includes('hls.js')) {
                 return 'player';
               }
-              if (id.includes('lucide-react')) {
-                return 'icons';
-              }
-              if (id.includes('@radix-ui')) {
-                return 'radix-ui';
-              }
-              if (
-                id.includes('class-variance-authority') ||
-                id.includes('tailwind-merge') ||
-                id.includes('clsx')
-              ) {
-                return 'style-utils';
-              }
-              if (id.includes('sonner')) {
-                return 'sonner';
-              }
+              // if (id.includes('lucide-react')) {
+              //   return 'icons';
+              // }
+              // if (id.includes('@radix-ui')) {
+              //   return 'radix-ui';
+              // }
+              // if (
+              //   id.includes('class-variance-authority') ||
+              //   id.includes('tailwind-merge') ||
+              //   id.includes('clsx')
+              // ) {
+              //   return 'style-utils';
+              // }
+              // if (id.includes('sonner')) {
+              //   return 'sonner';
+              // }
               // 其他第三方库统一打包
               return 'vendor';
             }
