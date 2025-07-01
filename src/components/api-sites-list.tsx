@@ -288,7 +288,7 @@ const ApiSitesList: React.FC = () => {
                 </div>
               ))
             : sites.map((site) => (
-                <div key={site.key} className="flex items-center bg-primary-foreground gap-4 p-3 rounded-sm">
+                <div key={site.key} className="flex items-center bg-accent gap-4 p-3 rounded-sm">
                   <div className="flex-1 flex items-center">
                     <Checkbox id={site.key} checked={getSelectedApiSites().includes(site.key)} onCheckedChange={() => toggleSite(site.key)} className="mr-2" />
                     <a href={site.api} target="_blank" rel="noopener noreferrer" className=" hover:text-blue-400 transition-colors" onClick={(e) => e.stopPropagation()}>

@@ -24,6 +24,9 @@ function getThemeColors(themeName: string) {
 const AppearanceSettings: React.FC = () => {
   const { theme, setTheme } = useTheme();
   const [colorScheme, setColorScheme] = useState("amethyst-haze");
+  const [customTheme, setCustomTheme] = useState<string>(
+    localStorage.getItem("morphotv-custom-theme") || ""
+  );
 
   useEffect(() => {
     const savedColorScheme = themeManager.getCurrentTheme();
@@ -38,6 +41,44 @@ const AppearanceSettings: React.FC = () => {
       console.error("切换主题失败:", error);
     }
   };
+
+  // 解析并应用自定义主题
+  const applyCustomTheme = (css: string) => {
+    // 解析 :root 和 .dark
+    const rootMatch = css.match(/:root\s*{([^}]*)}/);
+    const darkMatch = css.match(/\.dark\s*{([^}]*)}/);
+
+    // 先清除旧的自定义变量（可选）
+    // 这里只是简单实现，实际可维护一个变量列表来清理
+
+    if (rootMatch) {
+      rootMatch[1].split(";").forEach(line => {
+        const [key, value] = line.split(":").map(s => s.trim());
+        if (key && value) {
+          document.documentElement.style.setProperty(key, value);
+        }
+      });
+    }
+    if (darkMatch && document.documentElement.classList.contains("dark")) {
+      darkMatch[1].split(";").forEach(line => {
+        const [key, value] = line.split(":").map(s => s.trim());
+        if (key && value) {
+          document.documentElement.style.setProperty(key, value);
+        }
+      });
+    }
+  };
+
+  // 监听 customTheme 变化并应用
+  useEffect(() => {
+    if (customTheme) {
+      applyCustomTheme(customTheme);
+      localStorage.setItem("morphotv-custom-theme", customTheme);
+    } else {
+      localStorage.removeItem("morphotv-custom-theme");
+      themeManager.onThemeModeChange();
+    }
+  }, [customTheme, colorScheme]);
 
   return (
     <div className="rounded-xl border border-border bg-card/60 mx-0 p-4 space-y-6 w-full">
@@ -86,6 +127,18 @@ const AppearanceSettings: React.FC = () => {
               })}
             </SelectContent>
           </Select>
+        </div>
+      </div>
+      <div className="mt-6">
+        <label className="block mb-2 font-medium">自定义主题 CSS</label>
+        <textarea
+          className="w-full h-40 p-2 border rounded"
+          value={customTheme}
+          onChange={e => setCustomTheme(e.target.value)}
+          placeholder=":root { /* 粘贴你的主题变量 */ } &#10;.dark { /* 粘贴暗色变量 */ }"
+        />
+        <div className="text-xs text-muted-foreground mt-1">
+          支持直接粘贴 CSS 变量，自动应用到当前主题，自定义主题CSS优先于选择的主题
         </div>
       </div>
     </div>

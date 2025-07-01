@@ -72,9 +72,36 @@ export function ThemeProvider({
     }
   }, []);
 
+  // 应用自定义主题变量
+  function applyCustomTheme(css: string) {
+    const rootMatch = css.match(/:root\s*{([^}]*)}/);
+    const darkMatch = css.match(/\.dark\s*{([^}]*)}/);
+    if (rootMatch) {
+      rootMatch[1].split(";").forEach(line => {
+        const [key, value] = line.split(":").map(s => s.trim());
+        if (key && value) {
+          document.documentElement.style.setProperty(key, value);
+        }
+      });
+    }
+    if (darkMatch && document.documentElement.classList.contains("dark")) {
+      darkMatch[1].split(";").forEach(line => {
+        const [key, value] = line.split(":").map(s => s.trim());
+        if (key && value) {
+          document.documentElement.style.setProperty(key, value);
+        }
+      });
+    }
+  }
+
   // 初始化主题管理器
   useEffect(() => {
     themeManager.initTheme();
+    // 页面初始化时自动应用自定义主题
+    const saved = localStorage.getItem("morphotv-custom-theme");
+    if (saved) {
+      applyCustomTheme(saved);
+    }
   }, []);
 
   const value = {

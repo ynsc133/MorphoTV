@@ -52,7 +52,7 @@ const OnlineParserSettings: React.FC = () => {
         {parserList.map((item, idx) => (
           <div
             key={item.url + idx}
-            className="flex items-center gap-3 p-3 rounded-sm hover:bg-primary-foreground line-clamp-1">
+            className="flex items-center gap-3 p-3 rounded-sm hover:bg-accent line-clamp-1">
             <span className="flex-1 line-clamp-1">
               {item.name} <span className="ml-2 text-xs text-gray-400">{item.url}</span>
             </span>

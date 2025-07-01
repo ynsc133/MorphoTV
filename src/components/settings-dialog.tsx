@@ -29,7 +29,7 @@ const menuItems = [
 ];
 
 const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onOpenChange }) => {
-  const [activeKey, setActiveKey] = useState("proxy");
+  const [activeKey, setActiveKey] = useState("appearance");
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const handleMenuClick = (key: string) => {
@@ -44,7 +44,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onOpenChange }) =
         <DialogDescription className="sr-only">Customize your settings here.</DialogDescription>
         <SidebarProvider className="items-start">
           {/* 桌面端侧边栏 */}
-          <Sidebar collapsible="none" className="hidden md:flex">
+          <Sidebar collapsible="none" className="hidden md:flex border">
             <SidebarContent>
               <SidebarGroup>
                 <SidebarGroupContent>

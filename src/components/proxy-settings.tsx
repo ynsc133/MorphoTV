@@ -65,7 +65,7 @@ const ProxySettings: React.FC = () => {
       </div>
       <div className="space-y-2">
         <div
-          className={`flex items-center gap-3 p-3 rounded-sm cursor-pointer ${selectedProxy === "" ? "bg-primary-foreground text-primary" : "hover:bg-primary-foreground "}`}
+          className={`flex items-center gap-3 p-3 rounded-sm cursor-pointer ${selectedProxy === "" ? "bg-accent text-primary" : "hover:bg-accent "}`}
           onClick={() => handleSelectProxy("")}>
           <CheckCircle2 className="w-4 h-4 mr-1" /> 不代理
         </div>
@@ -73,7 +73,7 @@ const ProxySettings: React.FC = () => {
           <div
             key={item.url + idx}
             className={`flex items-center gap-3 p-3 rounded-sm  cursor-pointer ${
-              selectedProxy === item.url ? "bg-primary-foreground text-primary " : "hover:bg-primary-foreground"
+              selectedProxy === item.url ? "bg-accent text-primary " : "hover:bg-accent"
             }`}
             onClick={() => handleSelectProxy(item.url)}>
             <CheckCircle2 className="w-4 h-4 mr-1" />
