@@ -1,0 +1,222 @@
+{
+    "PROXY_BASE_URL": "https://windy-toad-23.deno.dev/proxy/",
+    "tg_selected_model": 1750908942919,
+    "tg_prompt": "",
+    "search_sites": [
+        {
+            "id": "1748744344014",
+            "name": "阿里云盘发布频道",
+            "url": "https://t.me/s/shareAliyun?q={keyword}",
+            "enabled": true
+        },
+        {
+            "id": "1748744354447",
+            "name": "肯德基の4K影视综合电影云盘站",
+            "url": "https://t.me/s/XiangxiuNB?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1748744362990",
+            "name": "夸克云盘综合资源",
+            "url": "https://t.me/s/Quark_Movies?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1748744445095",
+            "name": "阿里云盘4K影视",
+            "url": "https://t.me/s/Aliyun_4K_Movies?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1748744491163",
+            "name": "盘酱酱Club",
+            "url": "https://t.me/s/PanjClub?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749446702891",
+            "name": "天翼云盘资源频道",
+            "url": "https://t.me/s/tianyirigeng?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "17494470388165",
+            "name": "123云盘资源频道",
+            "url": "https://t.me/s/xx123pan?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749437038417",
+            "name": "123云盘综合频道",
+            "url": "https://t.me/s/zyzhpd123?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "17494470128817",
+            "name": "天翼云盘资源发布频道",
+            "url": "https://t.me/s/cloudtianyi?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749447038427",
+            "name": "天翼云盘综合频道",
+            "url": "https://t.me/s/tyypzhpd?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749447258247",
+            "name": "奥斯卡4K蓝光（精品）影视磁力站",
+            "url": "https://t.me/s/Oscar_4Kmovies?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749447035816",
+            "name": "移动云盘资源分享",
+            "url": "https://t.me/s/ydypzyfx?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749547038817",
+            "name": "百度网盘综合频道",
+            "url": "https://t.me/s/bdwpzhpd?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749447038817",
+            "name": "综合频道",
+            "url": "https://t.me/s/yunpanall?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749447038417",
+            "name": "夸克浏览器二三事",
+            "url": "https://t.me/s/NewQuark?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749447033817",
+            "name": "阿里云盘吧（新）",
+            "url": "https://t.me/s/NewAliPan?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749447038815",
+            "name": "百度网盘资源分享",
+            "url": "https://t.me/s/BaiduCloudDisk?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1748447034817",
+            "name": "网盘资源收藏（移动云盘）",
+            "url": "https://t.me/s/yunpan139?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749447834517",
+            "name": "网盘资源收藏（UC网盘）",
+            "url": "https://t.me/s/yunpanuc?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1746447038327",
+            "name": "云盘资源发布频道",
+            "url": "https://t.me/s/qixingzhenren?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749447028417",
+            "name": "爱影夸克频道",
+            "url": "https://t.me/s/pankuake_share?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749447038317",
+            "name": "YOYO资源|夸克|短剧",
+            "url": "https://t.me/s/yoyokuakeduanju?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749447038215",
+            "name": "Shares_115_Channel",
+            "url": "https://t.me/s/Channel_Shares_115?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749447034817",
+            "name": "爷青回动画分享",
+            "url": "https://t.me/s/yeqingjie_GJG666?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749447037817",
+            "name": "迅雷云盘",
+            "url": "https://t.me/s/gotopan?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1744447038817",
+            "name": "【热门网剧在线】",
+            "url": "https://t.me/s/movielover8888_TV?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749447031817",
+            "name": "UC夸克百度迅雷资源分享",
+            "url": "https://t.me/s/ucquark?q={keyword}",
+            "enabled": false
+        },
+        {
+            "id": "1749447034217",
+            "name": "网盘资源(动画/动漫)频道",
+            "url": "https://t.me/s/alyp_Animation?q={keyword}",
+            "enabled": false
+        }
+    ],
+    "ai_api_key": "",
+    "m3u8ProxyList": [],
+    "ai_api_url": "",
+    "ANALYTICS_SCRIPT": "<script defer src=\"https://umi.itx7.top/script.js\" data-website-id=\"5896e4dd-8216-4ff1-8a44-257a08af3582\"></script>",
+    "searchHistory": [],
+    "immersiveTranslatePerformanceData": {
+        "initial": 0,
+        "buildContainer": 32,
+        "consumeContainer": 33,
+        "consumeParagraph": 138,
+        "parseParagraph": 37,
+        "translated": 2969,
+        "inserted": 180728
+    },
+    "vite-ui-theme": "dark",
+    "onlineParserList": [
+        {
+            "name": "虾米解析",
+            "url": "https://jx.xmflv.com/?url={url}"
+        },
+        {
+            "name": "虾米解析2",
+            "url": "https://jx.xmflv.cc/?url={url}"
+        },
+        {
+            "name": "剖云解析",
+            "url": "https://www.pouyun.com/?url={url}"
+        },
+        {
+            "name": "CK解析",
+            "url": "https://www.ckplayer.vip/jiexi/?url={url}"
+        },
+        {
+            "name": "盘古解析",
+            "url": "http://www.pangujiexi.com/jiexi/?url={url}"
+        },
+        {
+            "name": "m3u8解析",
+            "url": "http://jx.m3u8.tv/jiexi/?url={url}"
+        }
+    ],
+    "selectedApiSites": [
+        "jisu",
+        "heimuer",
+        "wolong",
+        "ffzy5"
+    ]
+}
